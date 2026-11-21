@@ -1,0 +1,18 @@
+using CloudStorageBrowser.Domain.Enums;
+
+namespace CloudStorageBrowser.Domain.ValueObjects;
+
+public class StorageItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string RelativePath { get; set; } = string.Empty;
+    public string FullPath { get; set; } = string.Empty;
+    public ItemType Type { get; set; }
+    public long Size { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime LastModifiedAtUtc { get; set; }
+    public string Extension { get; set; } = string.Empty;
+    public FileCategory Category { get; set; }
+    public bool IsReadOnly { get; set; }
+    public bool HasShadowCopy { get; set; }
+}

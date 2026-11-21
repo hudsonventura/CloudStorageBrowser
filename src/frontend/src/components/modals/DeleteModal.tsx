@@ -1,0 +1,78 @@
+import React, { useState } from 'react';
+import { X, Trash2, AlertTriangle } from 'lucide-react';
+import { FileItem } from '../../types';
+import { apiClient } from '../../api/client';
+import { useDataset } from '../../context/DatasetContext';
+
+interface DeleteModalProps {
+  item: FileItem;
+  onClose: () => void;
+}
+
+export const DeleteModal: React.FC<DeleteModalProps> = ({ item, onClose }) => {
+  const { selectedDataset, refreshListing, setSelectedItem } = useDataset();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!selectedDataset) return;
+    setIsDeleting(true);
+    setError(null);
+    try {
+      await apiClient.post('/files/delete', {
+        datasetId: selectedDataset.id,
+        relativePath: item.relativePath
+      });
+      setSelectedItem(null);
+      refreshListing();
+      onClose();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Falha ao excluir item');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
+        <div className="flex items-center space-x-3 text-red-600 mb-4">
+          <div className="p-3 bg-red-100 dark:bg-red-900/40 rounded-2xl">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">Confirmar Exclusão</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Esta ação não poderá ser desfeita.</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs rounded-xl">
+            {error}
+          </div>
+        )}
+
+        <p className="text-xs text-slate-600 dark:text-slate-300 mb-6 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+          Tem certeza que deseja excluir permanentemente o item:{' '}
+          <span className="font-bold text-slate-900 dark:text-white block mt-1 break-words">{item.name}</span>
+        </p>
+
+        <div className="flex items-center justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-40"
+          >
+            {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

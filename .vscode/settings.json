@@ -1,0 +1,11 @@
+{
+  "dotnet.defaultSolution": "CloudStorageBrowser.slnx",
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "typescript.tsdk": "src/frontend/node_modules/typescript/lib",
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "src/frontend/node_modules": false
+  }
+}

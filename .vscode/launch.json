@@ -1,0 +1,71 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Full Stack: Backend (.NET) + Frontend (Vite)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare-fullstack",
+      "program": "${workspaceFolder}/src/CloudStorageBrowser.Web/bin/Debug/net10.0/CloudStorageBrowser.Web.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/CloudStorageBrowser.Web",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+        "uriFormat": "http://localhost:3000"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:8080",
+        "DATASETS_DIR": "${workspaceFolder}/datasets",
+        "CONFIG_DIR": "${workspaceFolder}/config",
+        "CACHE_DIR": "${workspaceFolder}/cache",
+        "JWT_SECRET": "CloudStorageBrowser_SuperSecureKey_WithAtLeast32Characters!",
+        "DOTNET_CLI_HOME": "/tmp"
+      },
+      "sourceFileMap": {
+        "/views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Backend (.NET Core Only)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/CloudStorageBrowser.Web/bin/Debug/net10.0/CloudStorageBrowser.Web.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/CloudStorageBrowser.Web",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:8080",
+        "DATASETS_DIR": "${workspaceFolder}/datasets",
+        "CONFIG_DIR": "${workspaceFolder}/config",
+        "CACHE_DIR": "${workspaceFolder}/cache",
+        "DOTNET_CLI_HOME": "/tmp"
+      }
+    },
+    {
+      "name": "Frontend (Chrome Debug)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src/frontend/src"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack: Backend (.NET) + Chrome Debugger",
+      "configurations": [
+        "Full Stack: Backend (.NET) + Frontend (Vite)",
+        "Frontend (Chrome Debug)"
+      ],
+      "stopAll": true
+    }
+  ]
+}

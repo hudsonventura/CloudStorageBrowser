@@ -1,0 +1,23 @@
+services:
+  cloudstorage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cloudstoragebrowser:latest
+    container_name: cloudstoragebrowser
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount user datasets (supports both :rw and :ro flags!)
+      - ./data/datasets/dados:/data/datasets/dados:rw
+      - ./data/datasets/backup:/data/datasets/backup:ro
+      # Separate persistent volume for configuration & SQLite DB
+      - ./data/config:/data/config
+      # Dedicated volume for thumbnails cache (auto-reconstructed on-demand if lost)
+      - ./data/cache:/data/cache
+    environment:
+      - DATASETS_DIR=/data/datasets
+      - CONFIG_DIR=/data/config
+      - CACHE_DIR=/data/cache
+      - JWT_SECRET=CloudStorageBrowser_SuperSecureKey_WithAtLeast32Characters!

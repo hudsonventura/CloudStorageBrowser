@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CloudStorageBrowser.Application/CloudStorageBrowser.Application.csproj" />
+    <Project Path="src/CloudStorageBrowser.Domain/CloudStorageBrowser.Domain.csproj" />
+    <Project Path="src/CloudStorageBrowser.Infrastructure/CloudStorageBrowser.Infrastructure.csproj" />
+    <Project Path="src/CloudStorageBrowser.Web/CloudStorageBrowser.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CloudStorageBrowser.UnitTests/CloudStorageBrowser.UnitTests.csproj" />
+  </Folder>
+</Solution>

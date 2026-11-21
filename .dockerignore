@@ -1,0 +1,12 @@
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+src/frontend/node_modules
+src/frontend/dist
+cache
+config
+datasets
+data
+*.log

@@ -1,0 +1,17 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Node
+node_modules/
+dist/
+
+# Runtime data & testing
+config/
+cache/
+datasets/
+data/
+*.db
+*.db-journal
