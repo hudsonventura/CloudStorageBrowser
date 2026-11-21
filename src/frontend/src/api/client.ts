@@ -19,6 +19,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Do not boot user to login if change-password fails, let the modal show the message
+      if (error.config?.url?.includes('/auth/change-password')) {
+        return Promise.reject(error);
+      }
+
       localStorage.removeItem('csb_token');
       localStorage.removeItem('csb_user');
       if (window.location.pathname !== '/login') {

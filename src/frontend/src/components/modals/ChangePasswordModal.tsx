@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, KeyRound, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { apiClient } from '../../api/client';
 
@@ -16,6 +16,14 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,24 +47,34 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
 
     setIsLoading(true);
     try {
-      await apiClient.post('/auth/change-password', {
+      const res = await apiClient.post('/auth/change-password', {
         currentPassword,
         newPassword
       });
 
-      setSuccess('Senha alterada com sucesso!');
+      if (res.data?.token) {
+        localStorage.setItem('csb_token', res.data.token);
+      }
+
+      setSuccess(res.data?.message || 'Senha alterada com sucesso!');
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Falha ao alterar senha. Verifique a senha atual.');
+      const msg = err?.response?.data?.message || 'Falha ao alterar senha. Verifique a senha atual.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+    >
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-base">

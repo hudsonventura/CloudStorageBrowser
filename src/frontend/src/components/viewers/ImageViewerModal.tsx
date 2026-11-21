@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCw, Download, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ZoomIn, ZoomOut, RotateCw, Download, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
 
@@ -7,15 +7,54 @@ interface ImageViewerModalProps {
   item: FileItem;
   snapshotName?: string | null;
   onClose: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
-export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapshotName, onClose }) => {
+export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
+  item,
+  snapshotName,
+  onClose,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext,
+  currentIndex,
+  totalCount
+}) => {
   const { selectedDataset } = useDataset();
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+
+  // Reset zoom and rotation when item changes
+  useEffect(() => {
+    setScale(1);
+    setRotation(0);
+    setIsLoading(true);
+    setHasError(false);
+  }, [item.relativePath]);
+
+  // Keyboard navigation & Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
+        onPrev();
+      } else if (e.key === 'ArrowRight' && hasNext && onNext) {
+        onNext();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasPrev, hasNext, onPrev, onNext, onClose]);
 
   if (!selectedDataset) return null;
 
@@ -30,13 +69,23 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
   if (snapshotName) downloadUrl += `&snapshotName=${encodeURIComponent(snapshotName)}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between animate-in fade-in">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between animate-in fade-in select-none"
+    >
       {/* Top Bar */}
-      <div className="w-full px-6 py-4 flex items-center justify-between text-white border-b border-zinc-800 bg-zinc-950/80">
-        <div className="truncate mr-4">
+      <div className="w-full px-6 py-4 flex items-center justify-between text-white border-b border-zinc-800 bg-zinc-950/80 z-20">
+        <div className="truncate mr-4 flex items-center space-x-2">
           <p className="font-semibold text-sm truncate">{item.name}</p>
+          {currentIndex && totalCount && (
+            <span className="text-xs text-zinc-400 font-mono">
+              ({currentIndex} de {totalCount})
+            </span>
+          )}
           {snapshotName && (
-            <p className="text-xs text-amber-400 font-mono">Versão do Snapshot: {snapshotName}</p>
+            <span className="text-xs text-amber-400 font-mono ml-2">@{snapshotName}</span>
           )}
         </div>
 
@@ -45,21 +94,21 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
           <button
             onClick={() => setScale(prev => Math.min(prev + 0.25, 3))}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Aumentar zoom"
+            title="Aumentar zoom (+)"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setScale(prev => Math.max(prev - 0.25, 0.5))}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Diminuir zoom"
+            title="Diminuir zoom (-)"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={() => setRotation(prev => (prev + 90) % 360)}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Girar"
+            title="Girar 90°"
           >
             <RotateCw className="w-4 h-4" />
           </button>
@@ -74,7 +123,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
           <button
             onClick={onClose}
             className="p-2 rounded-xl bg-red-600/80 hover:bg-red-600 text-white transition-colors ml-2"
-            title="Fechar"
+            title="Fechar (Esc)"
           >
             <X className="w-4 h-4" />
           </button>
@@ -82,7 +131,40 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
       </div>
 
       {/* Main Image Stage */}
-      <div className="flex-1 w-full flex items-center justify-center overflow-hidden p-6 select-none bg-black relative">
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="flex-1 w-full flex items-center justify-center overflow-hidden p-6 relative bg-black"
+      >
+        {/* Navigation Button: Prev < */}
+        {hasPrev && onPrev && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrev();
+            }}
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
+            title="Anterior (Seta Esquerda)"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* Navigation Button: Next > */}
+        {hasNext && onNext && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
+            title="Próximo (Seta Direita)"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 text-zinc-400">
             <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -99,9 +181,9 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
               onClick={() => {
                 setHasError(false);
                 setIsLoading(true);
-                setRetryKey(k => k + 1);
+                setRetryKey(prev => prev + 1);
               }}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center space-x-2 transition-colors"
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium rounded-xl flex items-center space-x-1.5 mx-auto transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Tentar novamente</span>
@@ -118,9 +200,9 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ item, snapsh
             }}
             style={{
               transform: `scale(${scale}) rotate(${rotation}deg)`,
-              transition: 'transform 0.2s ease-out'
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
-            className={`max-h-[85vh] max-w-[90vw] object-contain shadow-2xl rounded-lg transition-opacity duration-300 ${
+            className={`max-h-[85vh] max-w-[85vw] object-contain rounded-lg shadow-2xl ${
               isLoading ? 'opacity-0' : 'opacity-100'
             }`}
           />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Image as ImageIcon, Video, Music, FileCode, Archive, ShieldCheck, Eye } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, Music, FileCode, Archive, ShieldCheck } from 'lucide-react';
 import { FileItem, FileCategory } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
 
@@ -10,7 +10,7 @@ interface FileGridProps {
 }
 
 export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpenFile }) => {
-  const { selectedDataset, snapshotName, selectedItem, setSelectedItem, setIsPropertiesOpen } = useDataset();
+  const { selectedDataset, snapshotName, selectedItem, setSelectedItem } = useDataset();
 
   if (files.length === 0) return null;
 
@@ -90,11 +90,10 @@ export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpen
               }}
               onClick={() => {
                 setSelectedItem(file);
-                setIsPropertiesOpen(true);
               }}
               onDoubleClick={() => onOpenFile(file)}
               onContextMenu={(e) => onContextMenu(e, file)}
-              className={`group flex flex-col rounded-2xl bg-white dark:bg-zinc-900 border overflow-hidden transition-all cursor-pointer shadow-sm hover:shadow-md ${
+              className={`group flex flex-col rounded-2xl bg-white dark:bg-zinc-900 border overflow-hidden transition-all cursor-pointer shadow-sm hover:shadow-md select-none ${
                 isSelected
                   ? 'border-blue-500 bg-blue-50/50 dark:bg-zinc-800 ring-2 ring-blue-500/40'
                   : 'border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700'
@@ -116,30 +115,14 @@ export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpen
                         target.style.display = 'none';
                       }
                     }}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300 pointer-events-none"
                   />
                 ) : null}
 
                 {/* Fallback Icon overlay if thumbnail is hidden or non-image */}
-                <div className={`absolute inset-0 flex items-center justify-center ${file.hasThumbnail ? '-z-10' : ''}`}>
+                <div className={`absolute inset-0 flex items-center justify-center pointer-events-none ${file.hasThumbnail ? '-z-10' : ''}`}>
                   {renderFallbackIcon(file.category)}
                 </div>
-
-                {/* Quick Open Overlay on Hover */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenFile(file);
-                  }}
-                  title="Abrir / Visualizar"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white"
-                >
-                  <div className="p-2 rounded-xl bg-black/70 backdrop-blur border border-white/20 shadow-lg flex items-center space-x-1.5 text-xs font-semibold hover:scale-105 transition-transform">
-                    <Eye className="w-4 h-4 text-white" />
-                    <span>Visualizar</span>
-                  </div>
-                </button>
 
                 {/* Top Badge */}
                 <div className="absolute top-2.5 left-2.5 pointer-events-none">

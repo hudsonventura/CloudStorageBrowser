@@ -14,6 +14,7 @@ import { DragAndDropZone } from '../components/files/DragAndDropZone';
 import { NewFolderModal } from '../components/modals/NewFolderModal';
 import { RenameModal } from '../components/modals/RenameModal';
 import { DeleteModal } from '../components/modals/DeleteModal';
+import { UnsupportedFileModal } from '../components/modals/UnsupportedFileModal';
 import { ImageViewerModal } from '../components/viewers/ImageViewerModal';
 import { VideoPlayerModal } from '../components/viewers/VideoPlayerModal';
 import { PdfViewerModal } from '../components/viewers/PdfViewerModal';
@@ -55,6 +56,7 @@ export const BrowserPage: React.FC = () => {
 
   const folders = listing?.items.filter(i => i.type === 'Directory') || [];
   const files = listing?.items.filter(i => i.type === 'File') || [];
+  const mediaFiles = files.filter(f => f.category === 'Image' || f.category === 'Video');
 
   const handleContextMenu = (e: React.MouseEvent, item: FileItem) => {
     e.preventDefault();
@@ -122,17 +124,71 @@ export const BrowserPage: React.FC = () => {
     if (!viewingItem) return null;
     const { item, snap } = viewingItem;
 
-    if (item.category === 'Image') {
-      return <ImageViewerModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
+    // Image or Video (supports < and > media navigation across images & videos)
+    if (item.category === 'Image' || item.category === 'Video') {
+      const mediaIndex = mediaFiles.findIndex(f => f.relativePath === item.relativePath);
+      const hasPrev = mediaIndex > 0;
+      const hasNext = mediaIndex !== -1 && mediaIndex < mediaFiles.length - 1;
+      const onPrev = hasPrev ? () => setViewingItem({ item: mediaFiles[mediaIndex - 1], snap }) : undefined;
+      const onNext = hasNext ? () => setViewingItem({ item: mediaFiles[mediaIndex + 1], snap }) : undefined;
+      const currentIndex = mediaIndex !== -1 ? mediaIndex + 1 : undefined;
+      const totalCount = mediaFiles.length;
+
+      if (item.category === 'Image') {
+        return (
+          <ImageViewerModal
+            item={item}
+            snapshotName={snap}
+            onClose={() => setViewingItem(null)}
+            onPrev={onPrev}
+            onNext={onNext}
+            hasPrev={hasPrev}
+            hasNext={hasNext}
+            currentIndex={currentIndex}
+            totalCount={totalCount}
+          />
+        );
+      } else {
+        return (
+          <VideoPlayerModal
+            item={item}
+            snapshotName={snap}
+            onClose={() => setViewingItem(null)}
+            onPrev={onPrev}
+            onNext={onNext}
+            hasPrev={hasPrev}
+            hasNext={hasNext}
+            currentIndex={currentIndex}
+            totalCount={totalCount}
+          />
+        );
+      }
     }
-    if (item.category === 'Video' || item.category === 'Audio') {
+
+    // Audio
+    if (item.category === 'Audio') {
       return <VideoPlayerModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
     }
-    if (item.category === 'Document' && item.extension === '.pdf') {
+
+    // PDF Documents
+    if (item.category === 'Document' && item.extension.toLowerCase() === '.pdf') {
       return <PdfViewerModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
     }
-    // Text / Code viewer
-    return <CodeEditorModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
+
+    // Text & Code files
+    if (item.category === 'Text' || item.category === 'Code') {
+      return <CodeEditorModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
+    }
+
+    // Incompatible / Unsupported files (programs .exe, archives .zip/.tar, binaries, etc.)
+    return (
+      <UnsupportedFileModal
+        item={item}
+        snapshotName={snap}
+        onClose={() => setViewingItem(null)}
+        onDownload={handleDownload}
+      />
+    );
   };
 
   const formatBytes = (bytes: number) => {

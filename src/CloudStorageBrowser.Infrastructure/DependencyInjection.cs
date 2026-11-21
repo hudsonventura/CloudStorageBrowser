@@ -68,7 +68,14 @@ public static class DependencyInjection
             {
                 OnMessageReceived = context =>
                 {
-                    // 1. Read token from query string parameter (?token=...)
+                    // 1. If Authorization header is already provided with a Bearer token, let standard handler process it
+                    string? authHeader = context.Request.Headers.Authorization;
+                    if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    // 2. Read token from query string parameter (?token=...)
                     var queryToken = context.Request.Query["token"].ToString();
                     if (!string.IsNullOrEmpty(queryToken))
                     {
@@ -76,7 +83,7 @@ public static class DependencyInjection
                         return Task.CompletedTask;
                     }
 
-                    // 2. Read token from cookie (csb_token)
+                    // 3. Read token from cookie (csb_token)
                     if (context.Request.Cookies.TryGetValue("csb_token", out var cookieToken) &&
                         !string.IsNullOrEmpty(cookieToken))
                     {

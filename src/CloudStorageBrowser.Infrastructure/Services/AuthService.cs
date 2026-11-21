@@ -47,9 +47,24 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<UserDto?> GetCurrentUserAsync(int userId, CancellationToken cancellationToken = default)
+    public Task<UserDto?> GetCurrentUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        return GetCurrentUserAsync(userId, null, cancellationToken);
+    }
+
+    public async Task<UserDto?> GetCurrentUserAsync(int? userId, string? username, CancellationToken cancellationToken = default)
+    {
+        User? user = null;
+        if (userId.HasValue && userId.Value > 0)
+        {
+            user = await _context.Users.FindAsync(new object[] { userId.Value }, cancellationToken);
+        }
+
+        if (user == null && !string.IsNullOrEmpty(username))
+        {
+            user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower(), cancellationToken);
+        }
+
         if (user == null) return null;
 
         return new UserDto
@@ -61,9 +76,24 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    public Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
     {
-        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        return ChangePasswordAsync(userId, null, currentPassword, newPassword, cancellationToken);
+    }
+
+    public async Task<bool> ChangePasswordAsync(int? userId, string? username, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    {
+        User? user = null;
+        if (userId.HasValue && userId.Value > 0)
+        {
+            user = await _context.Users.FindAsync(new object[] { userId.Value }, cancellationToken);
+        }
+
+        if (user == null && !string.IsNullOrEmpty(username))
+        {
+            user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower(), cancellationToken);
+        }
+
         if (user == null) return false;
 
         if (!VerifyPassword(currentPassword, user.PasswordHash))
