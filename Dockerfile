@@ -9,13 +9,12 @@ RUN npm run build
 # Stage 2: Build ASP.NET Core Backend
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS backend-builder
 WORKDIR /app
-COPY CloudStorageBrowser.slnx ./
 COPY src/CloudStorageBrowser.Domain/ src/CloudStorageBrowser.Domain/
 COPY src/CloudStorageBrowser.Application/ src/CloudStorageBrowser.Application/
 COPY src/CloudStorageBrowser.Infrastructure/ src/CloudStorageBrowser.Infrastructure/
 COPY src/CloudStorageBrowser.Web/ src/CloudStorageBrowser.Web/
 
-RUN dotnet restore CloudStorageBrowser.slnx
+RUN dotnet restore src/CloudStorageBrowser.Web/CloudStorageBrowser.Web.csproj
 RUN dotnet publish src/CloudStorageBrowser.Web/CloudStorageBrowser.Web.csproj -c Release -o /app/publish --no-restore
 
 # Stage 3: Unified Production Runtime (Debian-based for TrueNAS SCALE compatibility)
