@@ -31,8 +31,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-slate-100 via-slate-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-tr from-slate-100 via-slate-50 to-blue-50 dark:from-black dark:via-[#09090b] dark:to-zinc-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-2xl backdrop-blur">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-500/30 mb-4">
@@ -41,7 +41,7 @@ export const LoginPage: React.FC = () => {
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             CloudStorageBrowser
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Navegador de Diretórios e Visualizador de Arquivos
           </p>
         </div>
@@ -55,35 +55,35 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-600 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
               Usuário
             </label>
             <div className="relative">
-              <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <UserIcon className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Usuário"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-600 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
               Senha
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Senha"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
           </div>
@@ -100,12 +100,12 @@ export const LoginPage: React.FC = () => {
           </div>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-          <p className="text-[11px] text-slate-400">
-            Usuário inicial padrão: <strong className="text-slate-600 dark:text-slate-300">admin</strong> / Senha:{' '}
-            <strong className="text-slate-600 dark:text-slate-300">admin</strong>
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800 text-center">
+          <p className="text-[11px] text-slate-400 dark:text-zinc-400">
+            Usuário inicial padrão: <strong className="text-slate-600 dark:text-zinc-200">admin</strong> / Senha:{' '}
+            <strong className="text-slate-600 dark:text-zinc-200">admin</strong>
           </p>
-          <p className="text-[10px] text-slate-400 mt-1">Sessão protegida por JWT válida por 30 dias</p>
+          <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1">Sessão protegida por JWT válida por 30 dias</p>
         </div>
       </div>
     </div>

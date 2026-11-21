@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: '/api'
+  baseURL: '/api',
+  withCredentials: true
 });
 
 // Intercept requests to attach JWT token

@@ -32,7 +32,24 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid username or password." });
         }
 
+        // Set HttpOnly cookie for seamless media, video, audio and thumbnail requests
+        Response.Cookies.Append("csb_token", result.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.Lax,
+            Secure = false,
+            Expires = DateTimeOffset.UtcNow.AddDays(30),
+            Path = "/"
+        });
+
         return Ok(result);
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("csb_token");
+        return Ok(new { message = "Logged out successfully." });
     }
 
     [HttpGet("me")]

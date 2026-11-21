@@ -14,16 +14,19 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
 
   if (!selectedDataset) return null;
 
+  const token = localStorage.getItem('csb_token') || '';
   let rawUrl = `/api/files/raw?datasetId=${selectedDataset.id}&path=${encodeURIComponent(item.relativePath)}`;
+  if (token) rawUrl += `&token=${encodeURIComponent(token)}`;
   if (snapshotName) rawUrl += `&snapshotName=${encodeURIComponent(snapshotName)}`;
 
   let downloadUrl = `/api/files/download?datasetId=${selectedDataset.id}&path=${encodeURIComponent(item.relativePath)}`;
+  if (token) downloadUrl += `&token=${encodeURIComponent(token)}`;
   if (snapshotName) downloadUrl += `&snapshotName=${encodeURIComponent(snapshotName)}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-between animate-in fade-in">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-between animate-in fade-in">
       {/* Top Bar */}
-      <div className="w-full px-6 py-3.5 flex items-center justify-between text-white border-b border-white/10 bg-slate-900">
+      <div className="w-full px-6 py-3.5 flex items-center justify-between text-white border-b border-zinc-800 bg-zinc-950">
         <div className="truncate mr-4">
           <p className="font-semibold text-sm truncate">{item.name}</p>
           {snapshotName && (
@@ -36,7 +39,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
             href={rawUrl}
             target="_blank"
             rel="noreferrer"
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title="Abrir em nova janela"
           >
             <ExternalLink className="w-4 h-4" />
@@ -44,7 +47,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
           <a
             href={downloadUrl}
             download={item.name}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title="Baixar PDF"
           >
             <Download className="w-4 h-4" />
@@ -59,11 +62,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
       </div>
 
       {/* PDF Iframe */}
-      <div className="flex-1 w-full p-4">
+      <div className="flex-1 w-full p-4 bg-zinc-950">
         <iframe
           src={rawUrl}
           title={item.name}
-          className="w-full h-full rounded-2xl bg-white shadow-2xl border-0"
+          className="w-full h-full rounded-2xl bg-white shadow-2xl border border-zinc-800"
         />
       </div>
     </div>

@@ -138,7 +138,7 @@ export const BrowserPage: React.FC = () => {
   return (
     <div
       onClick={() => setContextMenu(null)}
-      className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans transition-colors"
+      className="min-h-screen bg-slate-50 dark:bg-[#09090b] flex flex-col font-sans transition-colors"
     >
       <input
         ref={fileInputRef}
@@ -175,7 +175,7 @@ export const BrowserPage: React.FC = () => {
           <main className="flex-1 overflow-y-auto px-8 py-5 flex flex-col justify-between">
             <div>
               {/* Top Bar inside central pane: Breadcrumbs and View Toggles */}
-              <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-zinc-800">
                 <Breadcrumbs />
                 <ViewModeToggle />
               </div>
@@ -187,15 +187,15 @@ export const BrowserPage: React.FC = () => {
                   <span>{error}</span>
                 </div>
               ) : isLoading ? (
-                <div className="py-24 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
+                <div className="py-24 text-center text-slate-400 dark:text-zinc-500 flex flex-col items-center justify-center space-y-3">
                   <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
                   <p className="text-sm font-medium">Carregando diretório...</p>
                 </div>
               ) : listing?.items.length === 0 ? (
-                <div className="py-24 text-center text-slate-400 flex flex-col items-center justify-center space-y-2">
-                  <FolderX className="w-12 h-12 text-slate-300 dark:text-slate-700 stroke-1" />
-                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Esta pasta está vazia</p>
-                  <p className="text-xs text-slate-400">Arraste arquivos ou clique em "+ Novo" para adicionar</p>
+                <div className="py-24 text-center text-slate-400 dark:text-zinc-500 flex flex-col items-center justify-center space-y-2">
+                  <FolderX className="w-12 h-12 text-slate-300 dark:text-zinc-700 stroke-1" />
+                  <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">Esta pasta está vazia</p>
+                  <p className="text-xs text-slate-400 dark:text-zinc-500">Arraste arquivos ou clique em "+ Novo" para adicionar</p>
                 </div>
               ) : (
                 <>
@@ -236,6 +236,7 @@ export const BrowserPage: React.FC = () => {
             item={selectedItem}
             onClose={() => setIsPropertiesOpen(false)}
             onPreviewSnapshot={handlePreviewSnapshot}
+            onOpenFile={handleOpenFile}
           />
         )}
       </div>

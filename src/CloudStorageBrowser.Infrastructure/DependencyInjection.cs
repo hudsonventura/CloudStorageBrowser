@@ -64,6 +64,28 @@ public static class DependencyInjection
         .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = jwtService.GetValidationParameters();
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    // 1. Read token from query string parameter (?token=...)
+                    var queryToken = context.Request.Query["token"].ToString();
+                    if (!string.IsNullOrEmpty(queryToken))
+                    {
+                        context.Token = queryToken;
+                        return Task.CompletedTask;
+                    }
+
+                    // 2. Read token from cookie (csb_token)
+                    if (context.Request.Cookies.TryGetValue("csb_token", out var cookieToken) &&
+                        !string.IsNullOrEmpty(cookieToken))
+                    {
+                        context.Token = cookieToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         services.AddAuthorization();

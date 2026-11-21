@@ -64,34 +64,47 @@ public class ThumbnailService : IThumbnailService
 
             // Cache key based on source path, modification time, dimensions and snapshot
             var cacheKey = ComputeCacheKey(dataset.Id, cleanRel, snapshotName, fileInfo.LastWriteTimeUtc.Ticks, width, height);
-            var cacheFilePath = Path.Combine(_cacheDirectory, $"{cacheKey}.webp");
+            var cacheWebp = Path.Combine(_cacheDirectory, $"{cacheKey}.webp");
+            var cacheJpg = Path.Combine(_cacheDirectory, $"{cacheKey}.jpg");
 
             // If thumbnail already exists on disk, serve it directly
-            if (File.Exists(cacheFilePath))
+            if (File.Exists(cacheWebp))
             {
-                var cachedStream = new FileStream(cacheFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var cachedStream = new FileStream(cacheWebp, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return (cachedStream, "image/webp");
+            }
+            if (File.Exists(cacheJpg))
+            {
+                var cachedStream = new FileStream(cacheJpg, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return (cachedStream, "image/jpeg");
             }
 
             // On-demand generation: if cache was lost or doesn't exist yet, reconstruct it dynamically!
-            byte[]? generatedBytes = null;
+            (byte[] Bytes, string ContentType)? generated = null;
 
             if (IsImage(ext))
             {
-                generatedBytes = await GenerateImageThumbnailAsync(sourcePath, width, height, cancellationToken);
+                generated = await GenerateImageThumbnailAsync(sourcePath, width, height, cancellationToken);
             }
             else if (IsVideo(ext))
             {
-                generatedBytes = await GenerateVideoThumbnailAsync(sourcePath, width, height, cancellationToken);
+                generated = await GenerateVideoThumbnailAsync(sourcePath, width, height, cancellationToken);
             }
 
-            if (generatedBytes != null && generatedBytes.Length > 0)
+            if (generated != null && generated.Value.Bytes.Length > 0)
             {
-                // Save to cache directory asynchronously
-                await File.WriteAllBytesAsync(cacheFilePath, generatedBytes, cancellationToken);
+                try
+                {
+                    var targetFile = generated.Value.ContentType == "image/webp" ? cacheWebp : cacheJpg;
+                    await File.WriteAllBytesAsync(targetFile, generated.Value.Bytes, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to write thumbnail cache to disk; serving from memory.");
+                }
 
-                var stream = new MemoryStream(generatedBytes);
-                return (stream, "image/webp");
+                var stream = new MemoryStream(generated.Value.Bytes);
+                return (stream, generated.Value.ContentType);
             }
 
             return null;
@@ -103,45 +116,120 @@ public class ThumbnailService : IThumbnailService
         }
     }
 
-    private static async Task<byte[]?> GenerateImageThumbnailAsync(
+    private static async Task<(byte[] Bytes, string ContentType)?> GenerateImageThumbnailAsync(
         string sourcePath,
         int targetWidth,
         int targetHeight,
         CancellationToken cancellationToken)
     {
-        return await Task.Run(() =>
+        return await Task.Run<(byte[] Bytes, string ContentType)?>(() =>
         {
-            using var inputStream = File.OpenRead(sourcePath);
-            using var originalBitmap = SKBitmap.Decode(inputStream);
+            try
+            {
+                SKBitmap? originalBitmap = null;
+                SKEncodedOrigin origin = SKEncodedOrigin.TopLeft;
 
-            if (originalBitmap == null)
+                // Try codec first
+                try
+                {
+                    using var codec = SKCodec.Create(sourcePath);
+                    if (codec != null)
+                    {
+                        origin = codec.EncodedOrigin;
+                        originalBitmap = SKBitmap.Decode(codec);
+                    }
+                }
+                catch
+                {
+                    // Ignore and try standard decode
+                }
+
+                // Fallback to standard decode
+                if (originalBitmap == null)
+                {
+                    using var stream = File.OpenRead(sourcePath);
+                    originalBitmap = SKBitmap.Decode(stream);
+                }
+
+                if (originalBitmap == null)
+                    return null;
+
+                using (originalBitmap)
+                {
+                    var oriented = ApplyOrientation(originalBitmap, origin);
+                    using (oriented)
+                    {
+                        // Calculate scaled dimensions maintaining aspect ratio
+                        float scale = Math.Min((float)targetWidth / oriented.Width, (float)targetHeight / oriented.Height);
+                        int destWidth = Math.Max(1, (int)(oriented.Width * scale));
+                        int destHeight = Math.Max(1, (int)(oriented.Height * scale));
+
+                        var imageInfo = new SKImageInfo(destWidth, destHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
+                        using var resizedBitmap = oriented.Resize(imageInfo, SKSamplingOptions.Default);
+
+                        if (resizedBitmap == null)
+                            return null;
+
+                        using var image = SKImage.FromBitmap(resizedBitmap);
+
+                        // Try WebP first
+                        using var webpData = image.Encode(SKEncodedImageFormat.Webp, 80);
+                        if (webpData != null && webpData.Size > 0)
+                        {
+                            return (webpData.ToArray(), "image/webp");
+                        }
+
+                        // Fallback to JPEG
+                        using var jpegData = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+                        if (jpegData != null && jpegData.Size > 0)
+                        {
+                            return (jpegData.ToArray(), "image/jpeg");
+                        }
+
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
                 return null;
-
-            // Calculate scaled dimensions maintaining aspect ratio
-            float scale = Math.Min((float)targetWidth / originalBitmap.Width, (float)targetHeight / originalBitmap.Height);
-            int destWidth = Math.Max(1, (int)(originalBitmap.Width * scale));
-            int destHeight = Math.Max(1, (int)(originalBitmap.Height * scale));
-
-            var imageInfo = new SKImageInfo(destWidth, destHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
-            using var resizedBitmap = originalBitmap.Resize(imageInfo, SKSamplingOptions.Default);
-
-            if (resizedBitmap == null)
-                return null;
-
-            using var image = SKImage.FromBitmap(resizedBitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Webp, 85);
-
-            return data.ToArray();
+            }
         }, cancellationToken);
     }
 
-    private async Task<byte[]?> GenerateVideoThumbnailAsync(
+    private static SKBitmap ApplyOrientation(SKBitmap bitmap, SKEncodedOrigin origin)
+    {
+        return origin switch
+        {
+            SKEncodedOrigin.BottomRight => RotateBitmap(bitmap, 180),
+            SKEncodedOrigin.RightTop => RotateBitmap(bitmap, 90),
+            SKEncodedOrigin.LeftBottom => RotateBitmap(bitmap, 270),
+            _ => bitmap
+        };
+    }
+
+    private static SKBitmap RotateBitmap(SKBitmap bitmap, int degrees)
+    {
+        var isSwap = degrees == 90 || degrees == 270;
+        var rotated = new SKBitmap(
+            isSwap ? bitmap.Height : bitmap.Width,
+            isSwap ? bitmap.Width : bitmap.Height);
+
+        using var canvas = new SKCanvas(rotated);
+        canvas.Translate(rotated.Width / 2f, rotated.Height / 2f);
+        canvas.RotateDegrees(degrees);
+        canvas.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f);
+        canvas.DrawBitmap(bitmap, 0, 0, SKSamplingOptions.Default, null);
+
+        return rotated;
+    }
+
+    private async Task<(byte[] Bytes, string ContentType)?> GenerateVideoThumbnailAsync(
         string sourcePath,
         int targetWidth,
         int targetHeight,
         CancellationToken cancellationToken)
     {
-        // Try ffmpeg to extract video frame at 00:00:01
         var tempFramePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
 
         try

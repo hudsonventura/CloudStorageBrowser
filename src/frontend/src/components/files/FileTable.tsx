@@ -31,9 +31,9 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
   };
 
   return (
-    <div className="bg-white dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden shadow-sm">
       <table className="w-full text-left text-xs">
-        <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+        <thead className="bg-slate-50 dark:bg-zinc-950/80 border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-400 font-bold uppercase tracking-wider">
           <tr>
             <th className="py-3 px-4">Nome</th>
             <th className="py-3 px-4 w-32">Tamanho</th>
@@ -41,7 +41,7 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
             <th className="py-3 px-4 w-24">Tipo</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+        <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
           {items.map((item) => {
             const isSelected = selectedItem?.relativePath === item.relativePath;
 
@@ -66,15 +66,15 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
                 onContextMenu={(e) => onContextMenu(e, item)}
                 className={`cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                    ? 'bg-blue-50 dark:bg-zinc-800 text-blue-700 dark:text-blue-300 font-semibold'
+                    : 'hover:bg-slate-50 dark:hover:bg-zinc-800/60'
                 }`}
               >
                 <td className="py-2.5 px-4 flex items-center space-x-3">
                   {item.type === 'Directory' ? (
                     <Folder className="w-4 h-4 text-blue-500 shrink-0" />
                   ) : (
-                    <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+                    <FileText className="w-4 h-4 text-slate-400 dark:text-zinc-500 shrink-0" />
                   )}
                   <span className="truncate max-w-md">{item.name}</span>
                   {item.hasShadowCopy && (
@@ -83,13 +83,13 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
                     </span>
                   )}
                 </td>
-                <td className="py-2.5 px-4 font-mono text-slate-500 dark:text-slate-400">
+                <td className="py-2.5 px-4 font-mono text-slate-500 dark:text-zinc-400">
                   {item.type === 'File' ? formatBytes(item.size) : '--'}
                 </td>
-                <td className="py-2.5 px-4 text-slate-500 dark:text-slate-400">
+                <td className="py-2.5 px-4 text-slate-500 dark:text-zinc-400">
                   {formatDate(item.lastModifiedAtUtc)}
                 </td>
-                <td className="py-2.5 px-4 font-mono text-slate-400 uppercase">
+                <td className="py-2.5 px-4 font-mono text-slate-400 dark:text-zinc-500 uppercase">
                   {item.type === 'Directory' ? 'Pasta' : item.extension.replace('.', '') || 'Arquivo'}
                 </td>
               </tr>

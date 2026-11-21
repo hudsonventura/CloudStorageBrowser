@@ -58,9 +58,9 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-      <div className="w-full max-w-5xl h-[85vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full max-w-5xl h-[85vh] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50 dark:bg-zinc-950">
           <div className="flex items-center space-x-3">
             <span className="font-bold text-sm text-slate-900 dark:text-white truncate max-w-md">
               {item.name}
@@ -100,7 +100,7 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-200/50 dark:hover:bg-zinc-800 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -108,9 +108,9 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
         </div>
 
         {/* Editor Body */}
-        <div className="flex-1 p-4 bg-slate-950 overflow-hidden flex">
+        <div className="flex-1 p-4 bg-zinc-950 overflow-hidden flex">
           {isLoading ? (
-            <div className="w-full flex items-center justify-center text-slate-400 space-x-2">
+            <div className="w-full flex items-center justify-center text-zinc-400 space-x-2">
               <RefreshCw className="w-5 h-5 animate-spin text-blue-500" />
               <span>Carregando arquivo...</span>
             </div>
