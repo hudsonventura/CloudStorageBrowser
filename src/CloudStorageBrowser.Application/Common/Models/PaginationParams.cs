@@ -18,4 +18,5 @@ public class PaginationParams
     public SortField SortBy { get; set; } = SortField.Name;
     public SortDirection SortDirection { get; set; } = SortDirection.Ascending;
     public string? Search { get; set; }
+    public bool ShowHidden { get; set; } = false;
 }

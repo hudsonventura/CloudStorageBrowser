@@ -23,6 +23,7 @@ public class DirectoryListingDto
     public string? SnapshotName { get; set; }
     public bool IsReadOnly { get; set; }
     public bool HasShadowCopy { get; set; }
+    public bool ShowHidden { get; set; }
     public IReadOnlyList<FileItemDto> Items { get; set; } = Array.Empty<FileItemDto>();
     public int Page { get; set; }
     public int PageSize { get; set; }

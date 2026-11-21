@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Cloud, Plus, Search, Moon, Sun, LogOut, FolderPlus, Upload, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Cloud, Plus, Search, Moon, Sun, LogOut, FolderPlus, Upload, FileText, KeyRound, Eye } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useDataset } from '../../context/DatasetContext';
+import { ChangePasswordModal } from '../modals/ChangePasswordModal';
 
 interface HeaderProps {
   onNewFolder: () => void;
@@ -11,12 +13,14 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNewTextFile }) => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { searchQuery, setSearchQuery, selectedDataset, snapshotName } = useDataset();
+  const { searchQuery, setSearchQuery, selectedDataset, snapshotName, showHidden, setShowHidden } = useDataset();
 
   const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isReadOnly = selectedDataset?.accessMode === 'ReadOnly' || !!snapshotName;
@@ -36,12 +40,17 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
   return (
     <header className="h-16 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] px-6 flex items-center justify-between sticky top-0 z-20 transition-colors">
       {/* Brand */}
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+      <div
+        onClick={() => navigate('/home')}
+        className="flex items-center space-x-3 cursor-pointer select-none group"
+      >
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
           <Cloud className="w-6 h-6" />
         </div>
         <div>
-          <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">CloudStorageBrowser</span>
+          <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            CloudStorageBrowser
+          </span>
         </div>
       </div>
 
@@ -129,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-30">
+            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-30 animate-in fade-in zoom-in-95">
               <div className="px-4 py-2 border-b border-slate-100 dark:border-zinc-800">
                 <p className="text-xs text-slate-400 dark:text-zinc-500">Conectado como</p>
                 <p className="text-sm font-semibold text-slate-800 dark:text-zinc-100 truncate">{user?.username}</p>
@@ -137,9 +146,35 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
                   {user?.role || 'Admin'}
                 </span>
               </div>
+
+              {/* Preferences: Hidden Files Checkbox */}
+              <div className="px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800">
+                <label className="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-slate-700 dark:text-zinc-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={showHidden}
+                    onChange={(e) => setShowHidden(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+                  />
+                  <span>Mostrar itens ocultos (.)</span>
+                </label>
+              </div>
+
+              {/* Change Password */}
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  setIsChangePasswordOpen(true);
+                }}
+                className="w-full px-4 py-2.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors"
+              >
+                <KeyRound className="w-4 h-4 text-amber-500" />
+                <span>Alterar Senha</span>
+              </button>
+
               <button
                 onClick={logout}
-                className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center space-x-2 transition-colors"
+                className="w-full px-4 py-2.5 text-left text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center space-x-2.5 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sair</span>
@@ -148,6 +183,10 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
           )}
         </div>
       </div>
+
+      {isChangePasswordOpen && (
+        <ChangePasswordModal onClose={() => setIsChangePasswordOpen(false)} />
+      )}
     </header>
   );
 };

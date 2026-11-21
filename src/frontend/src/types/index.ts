@@ -64,6 +64,7 @@ export interface DirectoryListing {
   snapshotName?: string;
   isReadOnly: boolean;
   hasShadowCopy: boolean;
+  showHidden: boolean;
   items: FileItem[];
   page: number;
   pageSize: number;

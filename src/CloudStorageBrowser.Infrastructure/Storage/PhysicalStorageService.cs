@@ -53,6 +53,10 @@ public class PhysicalStorageService : IStorageService
             if (subDir.Name.Equals(".zfs", StringComparison.OrdinalIgnoreCase))
                 continue;
 
+            // Hide hidden directories starting with '.' unless ShowHidden is true
+            if (!pagination.ShowHidden && subDir.Name.StartsWith('.'))
+                continue;
+
             // Search filter
             if (!string.IsNullOrWhiteSpace(pagination.Search) &&
                 !subDir.Name.Contains(pagination.Search, StringComparison.OrdinalIgnoreCase))
@@ -84,6 +88,10 @@ public class PhysicalStorageService : IStorageService
         foreach (var file in dirInfo.EnumerateFiles())
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Hide hidden files starting with '.' unless ShowHidden is true
+            if (!pagination.ShowHidden && file.Name.StartsWith('.'))
+                continue;
 
             if (!string.IsNullOrWhiteSpace(pagination.Search) &&
                 !file.Name.Contains(pagination.Search, StringComparison.OrdinalIgnoreCase))

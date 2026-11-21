@@ -79,16 +79,19 @@ public class ThumbnailService : IThumbnailService
                 return (cachedStream, "image/jpeg");
             }
 
-            // On-demand generation: if cache was lost or doesn't exist yet, reconstruct it dynamically!
+            // On-demand generation with high-quality smoothing
             (byte[] Bytes, string ContentType)? generated = null;
 
-            if (IsImage(ext))
+            // 1. Primary engine: FFmpeg with Lanczos scaling filter for pristine antialiasing / smoothing
+            if (IsImage(ext) || IsVideo(ext))
             {
-                generated = await GenerateImageThumbnailAsync(sourcePath, width, height, cancellationToken);
+                generated = await GenerateFfmpegThumbnailAsync(sourcePath, width, height, IsVideo(ext), cancellationToken);
             }
-            else if (IsVideo(ext))
+
+            // 2. Fallback engine: SkiaSharp with CatmullRom cubic smoothing if FFmpeg is unavailable
+            if (generated == null && IsImage(ext))
             {
-                generated = await GenerateVideoThumbnailAsync(sourcePath, width, height, cancellationToken);
+                generated = await GenerateSkiaSharpThumbnailAsync(sourcePath, width, height, cancellationToken);
             }
 
             if (generated != null && generated.Value.Bytes.Length > 0)
@@ -116,7 +119,69 @@ public class ThumbnailService : IThumbnailService
         }
     }
 
-    private static async Task<(byte[] Bytes, string ContentType)?> GenerateImageThumbnailAsync(
+    private async Task<(byte[] Bytes, string ContentType)?> GenerateFfmpegThumbnailAsync(
+        string sourcePath,
+        int targetWidth,
+        int targetHeight,
+        bool isVideo,
+        CancellationToken cancellationToken)
+    {
+        var tempOutPath = Path.Combine(Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
+
+        try
+        {
+            var vfFilter = isVideo
+                ? $"thumbnail,scale={targetWidth}:{targetHeight}:force_original_aspect_ratio=decrease:flags=lanczos"
+                : $"scale={targetWidth}:{targetHeight}:force_original_aspect_ratio=decrease:flags=lanczos";
+
+            var arguments = isVideo
+                ? $"-ss 00:00:01 -i \"{sourcePath}\" -vf \"{vfFilter}\" -update 1 -frames:v 1 -q:v 2 \"{tempOutPath}\" -y"
+                : $"-i \"{sourcePath}\" -vf \"{vfFilter}\" -update 1 -frames:v 1 -q:v 2 \"{tempOutPath}\" -y";
+
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processInfo);
+            if (process != null)
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
+
+                await process.WaitForExitAsync(cts.Token);
+
+                if (process.ExitCode == 0 && File.Exists(tempOutPath))
+                {
+                    var bytes = await File.ReadAllBytesAsync(tempOutPath, cancellationToken);
+                    if (bytes.Length > 0)
+                    {
+                        return (bytes, "image/jpeg");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "FFmpeg smoothed thumbnail generation not available or failed for {Path}.", sourcePath);
+        }
+        finally
+        {
+            if (File.Exists(tempOutPath))
+            {
+                try { File.Delete(tempOutPath); } catch { }
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<(byte[] Bytes, string ContentType)?> GenerateSkiaSharpThumbnailAsync(
         string sourcePath,
         int targetWidth,
         int targetHeight,
@@ -165,7 +230,7 @@ public class ThumbnailService : IThumbnailService
                         int destHeight = Math.Max(1, (int)(oriented.Height * scale));
 
                         var imageInfo = new SKImageInfo(destWidth, destHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
-                        using var resizedBitmap = oriented.Resize(imageInfo, SKSamplingOptions.Default);
+                        using var resizedBitmap = oriented.Resize(imageInfo, new SKSamplingOptions(SKCubicResampler.CatmullRom));
 
                         if (resizedBitmap == null)
                             return null;
@@ -173,14 +238,14 @@ public class ThumbnailService : IThumbnailService
                         using var image = SKImage.FromBitmap(resizedBitmap);
 
                         // Try WebP first
-                        using var webpData = image.Encode(SKEncodedImageFormat.Webp, 80);
+                        using var webpData = image.Encode(SKEncodedImageFormat.Webp, 85);
                         if (webpData != null && webpData.Size > 0)
                         {
                             return (webpData.ToArray(), "image/webp");
                         }
 
                         // Fallback to JPEG
-                        using var jpegData = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+                        using var jpegData = image.Encode(SKEncodedImageFormat.Jpeg, 90);
                         if (jpegData != null && jpegData.Size > 0)
                         {
                             return (jpegData.ToArray(), "image/jpeg");
@@ -222,53 +287,6 @@ public class ThumbnailService : IThumbnailService
         canvas.DrawBitmap(bitmap, 0, 0, SKSamplingOptions.Default, null);
 
         return rotated;
-    }
-
-    private async Task<(byte[] Bytes, string ContentType)?> GenerateVideoThumbnailAsync(
-        string sourcePath,
-        int targetWidth,
-        int targetHeight,
-        CancellationToken cancellationToken)
-    {
-        var tempFramePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-
-        try
-        {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = "ffmpeg",
-                Arguments = $"-ss 00:00:01 -i \"{sourcePath}\" -vframes 1 -q:v 2 \"{tempFramePath}\" -y",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using var process = Process.Start(processInfo);
-            if (process != null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-
-                if (File.Exists(tempFramePath))
-                {
-                    var result = await GenerateImageThumbnailAsync(tempFramePath, targetWidth, targetHeight, cancellationToken);
-                    return result;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "ffmpeg not available or failed for video thumbnail.");
-        }
-        finally
-        {
-            if (File.Exists(tempFramePath))
-            {
-                try { File.Delete(tempFramePath); } catch { }
-            }
-        }
-
-        return null;
     }
 
     private static string ComputeCacheKey(int datasetId, string relativePath, string? snapshotName, long ticks, int width, int height)

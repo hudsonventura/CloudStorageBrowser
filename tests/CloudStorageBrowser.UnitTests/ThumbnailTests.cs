@@ -69,7 +69,7 @@ public class ThumbnailTests : IDisposable
         var result = await _service.GetOrCreateThumbnailAsync(_dataset, "photo.png", 200, 200);
 
         Assert.NotNull(result);
-        Assert.Equal("image/webp", result.Value.ContentType);
+        Assert.True(result.Value.ContentType == "image/jpeg" || result.Value.ContentType == "image/webp");
 
         using var memoryStream = new MemoryStream();
         await result.Value.Stream.CopyToAsync(memoryStream);

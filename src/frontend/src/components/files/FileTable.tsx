@@ -1,6 +1,6 @@
 import React from 'react';
-import { Folder, FileText, ShieldCheck } from 'lucide-react';
-import { FileItem } from '../../types';
+import { Folder, FileText, ShieldCheck, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { FileItem, SortField } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
 
 interface FileTableProps {
@@ -10,9 +10,29 @@ interface FileTableProps {
 }
 
 export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOpenFile }) => {
-  const { navigateTo, selectedItem, setSelectedItem, setIsPropertiesOpen } = useDataset();
+  const { navigateTo, selectedItem, setSelectedItem, sortBy, setSortBy, sortDirection, setSortDirection } = useDataset();
 
   if (items.length === 0) return null;
+
+  const handleSort = (field: SortField) => {
+    if (sortBy === field) {
+      setSortDirection(sortDirection === 'Ascending' ? 'Descending' : 'Ascending');
+    } else {
+      setSortBy(field);
+      setSortDirection('Ascending');
+    }
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortBy === field) {
+      return sortDirection === 'Ascending' ? (
+        <ArrowUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+      ) : (
+        <ArrowDown className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+      );
+    }
+    return <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />;
+  };
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '--';
@@ -33,12 +53,44 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden shadow-sm">
       <table className="w-full text-left text-xs">
-        <thead className="bg-slate-50 dark:bg-zinc-950/80 border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-400 font-bold uppercase tracking-wider">
+        <thead className="bg-slate-50 dark:bg-zinc-950/80 border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-400 font-bold uppercase tracking-wider select-none">
           <tr>
-            <th className="py-3 px-4">Nome</th>
-            <th className="py-3 px-4 w-32">Tamanho</th>
-            <th className="py-3 px-4 w-44">Modificado Em</th>
-            <th className="py-3 px-4 w-24">Tipo</th>
+            <th
+              onClick={() => handleSort('Name')}
+              className="py-3 px-4 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
+            >
+              <div className="flex items-center space-x-1.5">
+                <span>Nome</span>
+                {renderSortIcon('Name')}
+              </div>
+            </th>
+            <th
+              onClick={() => handleSort('Size')}
+              className="py-3 px-4 w-32 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
+            >
+              <div className="flex items-center space-x-1.5">
+                <span>Tamanho</span>
+                {renderSortIcon('Size')}
+              </div>
+            </th>
+            <th
+              onClick={() => handleSort('LastModified')}
+              className="py-3 px-4 w-44 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
+            >
+              <div className="flex items-center space-x-1.5">
+                <span>Modificado Em</span>
+                {renderSortIcon('LastModified')}
+              </div>
+            </th>
+            <th
+              onClick={() => handleSort('Extension')}
+              className="py-3 px-4 w-24 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
+            >
+              <div className="flex items-center space-x-1.5">
+                <span>Tipo</span>
+                {renderSortIcon('Extension')}
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
@@ -54,7 +106,6 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
                 }}
                 onClick={() => {
                   setSelectedItem(item);
-                  setIsPropertiesOpen(true);
                 }}
                 onDoubleClick={() => {
                   if (item.type === 'Directory') {

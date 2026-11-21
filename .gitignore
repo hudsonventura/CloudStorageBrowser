@@ -15,3 +15,4 @@ datasets/
 data/
 *.db
 *.db-journal
+docker-compose-volumes.yml

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dataset, FileItem, DirectoryListing, ViewMode, SortField, SortDirection } from '../types';
 import { apiClient } from '../api/client';
 
@@ -30,15 +31,20 @@ interface DatasetContextType {
   setSelectedItem: (item: FileItem | null) => void;
   isPropertiesOpen: boolean;
   setIsPropertiesOpen: (open: boolean) => void;
+  showHidden: boolean;
+  setShowHidden: (val: boolean) => void;
 }
 
 const DatasetContext = createContext<DatasetContextType>({} as DatasetContextType);
 
 export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [currentPath, setCurrentPath] = useState('');
-  const [snapshotName, setSnapshotName] = useState<string | null>(null);
+  const [snapshotName, setSnapshotNameState] = useState<string | null>(null);
   const [listing, setListing] = useState<DirectoryListing | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,40 +57,92 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [searchQuery, setSearchQuery] = useState('');
 
   const [selectedItem, setSelectedItem] = useState<FileItem | null>(null);
-  const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
+  const [isPropertiesOpen, setIsPropertiesOpen] = useState(true);
+  const [showHidden, setShowHiddenState] = useState<boolean>(() => localStorage.getItem('csb_show_hidden') === 'true');
 
-  // Check query params on mount for snapshot navigation e.g. from "Abrir em nova aba"
+  const setShowHidden = (val: boolean) => {
+    setShowHiddenState(val);
+    localStorage.setItem('csb_show_hidden', val ? 'true' : 'false');
+  };
+
+  // Load datasets on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const snap = params.get('snapshot');
-    const path = params.get('path');
-    const dsId = params.get('dataset');
-
-    if (snap) setSnapshotName(snap);
-    if (path) setCurrentPath(path);
-
-    loadDatasets(dsId ? parseInt(dsId, 10) : undefined);
+    loadDatasets();
   }, []);
 
-  const loadDatasets = async (initialDatasetId?: number) => {
+  const loadDatasets = async () => {
     try {
       const res = await apiClient.get<Dataset[]>('/datasets');
       setDatasets(res.data);
-      if (res.data.length > 0) {
-        if (initialDatasetId) {
-          const matched = res.data.find(d => d.id === initialDatasetId);
-          setSelectedDataset(matched || res.data[0]);
-        } else {
-          setSelectedDataset(res.data[0]);
-        }
-      }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Falha ao carregar datasets');
     }
   };
 
-  const fetchListing = useCallback(async () => {
+  // Synchronize state with URL pathname & search params
+  useEffect(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    const searchParams = new URLSearchParams(location.search);
+    const snap = searchParams.get('snapshot') || null;
+    setSnapshotNameState(snap);
+
+    if (segments.length === 0 || segments[0] === 'home' || segments[0] === 'login') {
+      setSelectedDataset(null);
+      setCurrentPath('');
+      setSelectedItem(null);
+      return;
+    }
+
+    const dsNameFromUrl = decodeURIComponent(segments[0]);
+    const subPathFromUrl = segments.slice(1).map(decodeURIComponent).join('/');
+
+    if (datasets.length > 0) {
+      const matched = datasets.find(d => d.name.toLowerCase() === dsNameFromUrl.toLowerCase());
+      if (matched) {
+        setSelectedDataset(prev => (prev?.id === matched.id ? prev : matched));
+        setCurrentPath(subPathFromUrl);
+      } else {
+        setError(`Dataset "${dsNameFromUrl}" não encontrado.`);
+      }
+    }
+  }, [location.pathname, location.search, datasets]);
+
+  const selectDataset = (dataset: Dataset) => {
+    setSelectedDataset(dataset);
+    setCurrentPath('');
+    setSnapshotNameState(null);
+    setPage(1);
+    setSelectedItem(null);
+    navigate(`/${encodeURIComponent(dataset.name)}`);
+  };
+
+  const navigateTo = (path: string) => {
     if (!selectedDataset) return;
+    setCurrentPath(path);
+    setPage(1);
+    setSelectedItem(null);
+
+    const encodedDataset = encodeURIComponent(selectedDataset.name);
+    const pathPart = path ? `/${path.split('/').map(encodeURIComponent).join('/')}` : '';
+    const searchPart = snapshotName ? `?snapshot=${encodeURIComponent(snapshotName)}` : '';
+    navigate(`/${encodedDataset}${pathPart}${searchPart}`);
+  };
+
+  const setSnapshotName = (snap: string | null) => {
+    setSnapshotNameState(snap);
+    if (!selectedDataset) return;
+
+    const encodedDataset = encodeURIComponent(selectedDataset.name);
+    const pathPart = currentPath ? `/${currentPath.split('/').map(encodeURIComponent).join('/')}` : '';
+    const searchPart = snap ? `?snapshot=${encodeURIComponent(snap)}` : '';
+    navigate(`/${encodedDataset}${pathPart}${searchPart}`);
+  };
+
+  const fetchListing = useCallback(async () => {
+    if (!selectedDataset) {
+      setListing(null);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -95,7 +153,8 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
         page,
         pageSize,
         sortBy,
-        sortDirection
+        sortDirection,
+        showHidden
       };
 
       if (searchQuery) params.search = searchQuery;
@@ -108,25 +167,11 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDataset, currentPath, page, pageSize, sortBy, sortDirection, searchQuery, snapshotName]);
+  }, [selectedDataset, currentPath, page, pageSize, sortBy, sortDirection, searchQuery, snapshotName, showHidden]);
 
   useEffect(() => {
     fetchListing();
   }, [fetchListing]);
-
-  const selectDataset = (dataset: Dataset) => {
-    setSelectedDataset(dataset);
-    setCurrentPath('');
-    setSnapshotName(null);
-    setPage(1);
-    setSelectedItem(null);
-  };
-
-  const navigateTo = (path: string) => {
-    setCurrentPath(path);
-    setPage(1);
-    setSelectedItem(null);
-  };
 
   const refreshListing = () => {
     fetchListing();
@@ -161,7 +206,9 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
         selectedItem,
         setSelectedItem,
         isPropertiesOpen,
-        setIsPropertiesOpen
+        setIsPropertiesOpen,
+        showHidden,
+        setShowHidden
       }}
     >
       {children}

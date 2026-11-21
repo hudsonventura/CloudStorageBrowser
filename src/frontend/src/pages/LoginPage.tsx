@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Cloud, Lock, User as UserIcon, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { LoginResponse } from '../types';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { isAuthenticated, login } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +29,7 @@ export const LoginPage: React.FC = () => {
         password
       });
       login(res.data);
+      navigate('/home');
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Usuário ou senha inválidos.');
     } finally {
@@ -101,11 +108,9 @@ export const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800 text-center">
-          <p className="text-[11px] text-slate-400 dark:text-zinc-400">
-            Usuário inicial padrão: <strong className="text-slate-600 dark:text-zinc-200">admin</strong> / Senha:{' '}
-            <strong className="text-slate-600 dark:text-zinc-200">admin</strong>
+          <p className="text-[11px] text-slate-400 dark:text-zinc-500">
+            Padrão inicial: <span className="font-mono font-bold text-slate-600 dark:text-zinc-300">admin / admin</span>
           </p>
-          <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1">Sessão protegida por JWT válida por 30 dias</p>
         </div>
       </div>
     </div>

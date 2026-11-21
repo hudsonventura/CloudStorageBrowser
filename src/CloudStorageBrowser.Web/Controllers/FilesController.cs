@@ -33,6 +33,7 @@ public class FilesController : ControllerBase
         [FromQuery] SortDirection sortDirection = SortDirection.Ascending,
         [FromQuery] string? search = null,
         [FromQuery] string? snapshotName = null,
+        [FromQuery] bool showHidden = false,
         CancellationToken cancellationToken = default)
     {
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
@@ -45,7 +46,8 @@ public class FilesController : ControllerBase
             PageSize = pageSize,
             SortBy = sortBy,
             SortDirection = sortDirection,
-            Search = search
+            Search = search,
+            ShowHidden = showHidden
         };
 
         var cleanPath = path ?? string.Empty;
@@ -73,6 +75,7 @@ public class FilesController : ControllerBase
             SnapshotName = snapshotName,
             IsReadOnly = dataset.AccessMode == DatasetAccessMode.ReadOnly || !string.IsNullOrEmpty(snapshotName),
             HasShadowCopy = dataset.AccessMode == DatasetAccessMode.ReadWrite, // HasShadowCopy set via items
+            ShowHidden = showHidden,
             Items = itemDtos,
             Page = pagedResult.Page,
             PageSize = pagedResult.PageSize,
