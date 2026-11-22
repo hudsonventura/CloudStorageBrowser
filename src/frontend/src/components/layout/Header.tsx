@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cloud, Plus, Search, Moon, Sun, LogOut, FolderPlus, Upload, FileText, KeyRound, Globe } from 'lucide-react';
+import { Plus, Search, Moon, Sun, LogOut, FolderPlus, Upload, FileText, KeyRound, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useDataset } from '../../context/DatasetContext';
 import { useI18n } from '../../context/I18nContext';
 import { ChangePasswordModal } from '../modals/ChangePasswordModal';
+import appLogo from '../../assets/logo.png';
 
 interface HeaderProps {
   onNewFolder: () => void;
@@ -46,8 +47,8 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
         onClick={() => navigate('/home')}
         className="flex items-center space-x-3 cursor-pointer select-none group"
       >
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-          <Cloud className="w-6 h-6" />
+        <div className="w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-transform drop-shadow-sm">
+          <img src={appLogo} alt="Logo" className="w-9 h-9 object-contain" />
         </div>
         <div>
           <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">

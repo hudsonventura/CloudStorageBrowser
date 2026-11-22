@@ -21,6 +21,7 @@ import { PdfViewerModal } from '../components/viewers/PdfViewerModal';
 import { CodeEditorModal } from '../components/viewers/CodeEditorModal';
 import { MarkdownEditorModal } from '../components/viewers/MarkdownEditorModal';
 import { FileItem } from '../types';
+import appLogo from '../assets/logo.png';
 import { useDataset } from '../context/DatasetContext';
 import { useI18n } from '../context/I18nContext';
 import { apiClient } from '../api/client';
@@ -252,13 +253,18 @@ export const BrowserPage: React.FC = () => {
           /* Home Welcome Dashboard */
           <main className="flex-1 overflow-y-auto px-8 py-8">
             <div className="max-w-4xl mx-auto space-y-6">
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl shadow-blue-500/10">
-                <h2 className="text-2xl font-black tracking-tight mb-2">
-                  {t('browser.welcomeTitle')}
-                </h2>
-                <p className="text-sm text-blue-100 max-w-xl">
-                  {t('browser.welcomeSubtitle')}
-                </p>
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl shadow-blue-500/10 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight mb-2">
+                    {t('browser.welcomeTitle')}
+                  </h2>
+                  <p className="text-sm text-blue-100 max-w-xl">
+                    {t('browser.welcomeSubtitle')}
+                  </p>
+                </div>
+                <div className="hidden sm:flex shrink-0 ml-6 p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+                  <img src={appLogo} alt="Logo" className="w-16 h-16 object-contain drop-shadow" />
+                </div>
               </div>
 
               <div>

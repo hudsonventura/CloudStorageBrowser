@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { Cloud, Lock, User as UserIcon, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, User as UserIcon, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { apiClient } from '../api/client';
 import { LoginResponse } from '../types';
+import appLogo from '../assets/logo.png';
 
 export const LoginPage: React.FC = () => {
   const { isAuthenticated, login } = useAuth();
@@ -63,8 +64,8 @@ export const LoginPage: React.FC = () => {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-500/30 mb-4">
-            <Cloud className="w-10 h-10" />
+          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4 hover:scale-105 transition-transform drop-shadow-md">
+            <img src={appLogo} alt="CloudStorageBrowser Logo" className="w-16 h-16 object-contain" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {t('login.title')}

@@ -1,56 +1,29 @@
-# CloudStorageBrowser
+<p align="center">
+  <img src="logo.png" width="96" alt="CloudStorageBrowser Logo" />
+</p>
 
-A modern web-based directory navigator and file viewer (inspired by Cloudreve and Nextcloud), developed with **ASP.NET Core** (Clean Architecture) and **React**, packaged into a **single unified Docker container**. Features native support for mounted datasets (`:rw` or `:ro`), dedicated cache with on-demand reconstruction, SQLite configuration storage, and complete compatibility with **TrueNAS / ZFS Shadow Copies (Snapshots)**.
+<h1 align="center">CloudStorageBrowser</h1>
+
+<p align="center">
+  <strong>Your modern personal cloud browser with native TrueNAS & ZFS Shadow Copy time travel.</strong>
+</p>
 
 ---
 
 ## 🚀 Key Features
 
-### 🏛️ Clean Architecture & Strict Enums
-- Backend built across `Domain`, `Application`, `Infrastructure`, and `Web` layers.
-- Strict enums for access modes, sorting fields, sort directions, file categories, and snapshot change states.
-
-### 🔒 Local Authentication & Security
-- Self-contained local authentication with no external cloud dependencies.
-- Signed JWT token valid for 30 days.
-- Initial default administrator account: **`admin`** / **`admin`** (seeded automatically on first run).
-- Password change modal with salt concatenation and SHA-256 hashing.
-
-### 📁 Dataset Support & Permissions (`:ro` and `:rw`)
-- Map any local or TrueNAS directory as a dataset via Docker volume mounts.
-- Automatic detection of the `:ro` (read-only) flag, disabling write operations in the user interface and strictly enforcing HTTP 403 Forbidden on the backend.
-
-### 🖼️ High-Quality FFmpeg Thumbnails & Regenerative Cache
-- High-quality image and video thumbnail generation using **FFmpeg** with the Lanczos scaling filter (`flags=lanczos`) for smooth antialiasing.
-- Dedicated cache volume stored at `/data/cache/thumbnails`.
-- **On-demand reconstruction**: if the cache volume is deleted or lost, thumbnails are automatically regenerated on the fly during navigation.
-
-### 🛡️ TrueNAS / ZFS Shadow Copies (Snapshots)
-- Automatic detection of virtual `.zfs/snapshot` directories.
-- Previous versions listed under file and folder properties.
-- **Smart modification filter**: enabled by default to display **only snapshots with actual changes**, hiding daily snapshots where the file remained untouched.
-- **File Actions**: preview or download the exact historical version of any file.
-- **Directory Action**: **"Open in new tab"** button to browse the entire directory tree at that exact snapshot in read-only mode with a snapshot banner.
-
-### 🎨 Modern Web Interface (Cloudreve-Inspired)
-- **Themes**: Seamless Light and Dark modes with persistent user preference (deep gray and black tones in dark mode).
-- **Navigation & Search**: Interactive breadcrumbs, instant search bar (press `/`), and `+ New` button (New Folder, Upload Files, New Text Document).
-- **View Modes**: **Thumbnails / Grid**, **Details Table**, and **List**.
-- **Interactive Column Sorting**: Clickable table headers in Details view to sort by **Name**, **Size**, **Last Modified**, and **Type** (ascending/descending).
-- **Selection & Preview**: Single-click selects any item; double-click opens the preview.
-- **Persistent Properties Sidebar**: Always visible on the right. When nothing is selected, it displays current directory/dataset usage and stats; when an item is selected, it presents file details and EXIF metadata (camera model, exposure, aperture, ISO, GPS coordinates).
-- **Pagination**: Default 100 items per page with customizable limits (50, 100, 250, 500).
-- **Drag & Drop**: Drag files from your desktop to upload; drag items between folders to move them.
-- **Context Menu**: Full right-click menu (Open, Download, Rename, Copy, Move, Delete, Properties).
-- **Hidden Items Preference**: Checkbox in user profile menu to toggle visibility of hidden items starting with `.` (dot).
-- **Backdrop Modal UX**: Click outside any modal or press `Escape` to close it.
-
-### 👁️ Built-in File Viewers & Media Navigation
-- **Image & Video Viewer**: Floating `<` and `>` navigation buttons plus keyboard arrow keys (`ArrowLeft`, `ArrowRight`) to cycle smoothly through images and videos in the folder without closing the modal.
-- **Audio Player**: Integrated HTML5 streaming player.
-- **PDF Viewer**: Embedded browser document viewer.
-- **Text & Code Editor**: In-browser code and text editor with syntax styling and file saving (disabled on read-only datasets).
-- **Unsupported File Modal**: Clean modal for non-previewable formats (executables `.exe`, archives `.zip`, `.tar`, `.rar`, etc.) showing file specifications and a direct download button.
+- 🐳 **Run Anywhere with Docker in Seconds**: Deploy with a single `docker compose up` command. No external database, no complex dependencies, and minimal resource usage.
+- 📂 **Works with Your Existing Folders (Zero Lock-In)**: No painful migrations or proprietary database schemas. Just point CloudStorageBrowser to your existing drives, NAS shares, or folders, and it handles the rest. You don't need to manage everything through the app—keep organizing your files via SMB, NFS, or the terminal, and changes reflect instantly.
+- 🕒 **ZFS Shadow Copy & Snapshot Time Travel**: Accidentally deleted a file or want to revert an edit? Travel back in time and view, preview, or download previous versions directly from your TrueNAS / ZFS snapshots without leaving the browser.
+- 🖼️ **Instant Media Gallery & Document Viewers**:
+  - **Photos & Images**: Smooth full-screen gallery with zoom, rotation, and keyboard navigation.
+  - **Videos & Audio**: Stream multimedia directly in your browser.
+  - **PDFs & Documents**: Built-in full-featured PDF reader.
+  - **Markdown Editor**: Integrated WYSIWYG & split live preview editor to take notes and write documentation on the fly.
+- ⚡ **Lightning-Fast Thumbnail Caching**: Browse folders with thousands of photos and videos effortlessly with automatic, smart thumbnail generation.
+- 🔒 **Safe & Protected Storage**: Mount volumes with Read-Write (`:rw`) or Read-Only (`:ro`) permissions to protect critical archives from accidental modifications.
+- ✨ **Simplicity & Minimalism First**: A clean, modern, and uncluttered interface that stays out of your way and lets your content take center stage.
+- 🌐 **Multi-Language & Dark Mode**: Ready out of the box in **English**, **Portuguese**, and **Spanish**, featuring an eye-friendly dark/light theme switch.
 
 ---
 
@@ -101,7 +74,7 @@ services:
 docker compose up -d
 ```
 
-2. Access the application in your browser: `http://localhost:8080`
+2. Access the application in your browser: `http://localhost:8080`. The default user and pass are:
    - **Username:** `admin`
    - **Password:** `admin`
 
