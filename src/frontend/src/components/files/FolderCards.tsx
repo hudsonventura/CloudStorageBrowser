@@ -2,6 +2,7 @@ import React from 'react';
 import { Folder, ShieldCheck } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface FolderCardsProps {
   folders: FileItem[];
@@ -11,13 +12,14 @@ interface FolderCardsProps {
 
 export const FolderCards: React.FC<FolderCardsProps> = ({ folders, onContextMenu, onDropOnFolder }) => {
   const { navigateTo, selectedItem, setSelectedItem, setIsPropertiesOpen } = useDataset();
+  const { t } = useI18n();
 
   if (folders.length === 0) return null;
 
   return (
     <div className="mb-6">
       <h3 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-3 px-1">
-        Pastas
+        {t('browser.folders')}
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {folders.map((folder) => {

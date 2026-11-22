@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface VideoPlayerModalProps {
   item: FileItem;
@@ -27,6 +28,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   totalCount
 }) => {
   const { selectedDataset } = useDataset();
+  const { t } = useI18n();
 
   // Keyboard navigation & Escape
   useEffect(() => {
@@ -69,7 +71,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           <p className="font-semibold text-sm truncate">{item.name}</p>
           {currentIndex && totalCount && (
             <span className="text-xs text-zinc-400 font-mono">
-              ({currentIndex} de {totalCount})
+              ({currentIndex} {t('viewers.of')} {totalCount})
             </span>
           )}
           {snapshotName && (
@@ -82,14 +84,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             href={downloadUrl}
             download={item.name}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Baixar mídia"
+            title={t('viewers.downloadMedia')}
           >
             <Download className="w-4 h-4" />
           </a>
           <button
             onClick={onClose}
             className="p-2 rounded-xl bg-red-600/80 hover:bg-red-600 text-white transition-colors ml-2"
-            title="Fechar (Esc)"
+            title={t('common.close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -111,7 +113,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               onPrev();
             }}
             className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
-            title="Anterior (Seta Esquerda)"
+            title={t('viewers.previous')}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -125,7 +127,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               onNext();
             }}
             className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
-            title="Próximo (Seta Direita)"
+            title={t('viewers.next')}
           >
             <ChevronRight className="w-6 h-6" />
           </button>

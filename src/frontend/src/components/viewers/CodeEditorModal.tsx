@@ -3,6 +3,7 @@ import { X, Save, RefreshCw, AlertCircle, Check } from 'lucide-react';
 import { FileItem } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface CodeEditorModalProps {
   item: FileItem;
@@ -12,6 +13,7 @@ interface CodeEditorModalProps {
 
 export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshotName, onClose }) => {
   const { selectedDataset, refreshListing } = useDataset();
+  const { t } = useI18n();
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,10 +41,10 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
     })
     .then(res => setContent(res.data.content))
     .catch(err => {
-      setMessage({ text: err?.response?.data?.message || 'Falha ao carregar conteúdo', isError: true });
+      setMessage({ text: err?.response?.data?.message || t('viewers.loadError'), isError: true });
     })
     .finally(() => setIsLoading(false));
-  }, [item.relativePath, selectedDataset?.id, snapshotName]);
+  }, [item.relativePath, selectedDataset?.id, snapshotName, t]);
 
   const handleSave = async () => {
     if (!selectedDataset || isReadOnly) return;
@@ -54,11 +56,11 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
         relativePath: item.relativePath,
         content
       });
-      setMessage({ text: 'Arquivo salvo com sucesso!', isError: false });
+      setMessage({ text: t('viewers.saveSuccess'), isError: false });
       refreshListing();
       setTimeout(() => setMessage(null), 2500);
     } catch (err: any) {
-      setMessage({ text: err?.response?.data?.message || 'Erro ao salvar arquivo', isError: true });
+      setMessage({ text: err?.response?.data?.message || t('viewers.saveError'), isError: true });
     } finally {
       setIsSaving(false);
     }
@@ -83,7 +85,7 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
             )}
             {isReadOnly && (
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                Somente Leitura
+                {t('common.readOnly')}
               </span>
             )}
           </div>
@@ -96,13 +98,13 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
                 className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all disabled:opacity-50"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>{isSaving ? 'Salvando...' : 'Salvar'}</span>
+                <span>{isSaving ? t('common.saving') : t('common.save')}</span>
               </button>
             )}
             <button
               onClick={onClose}
               className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-slate-200/50 dark:hover:bg-zinc-800"
-              title="Fechar (Esc)"
+              title={t('common.close')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -126,7 +128,7 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 space-x-2">
               <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
-              <span className="text-xs">Carregando conteúdo...</span>
+              <span className="text-xs">{t('common.loading')}</span>
             </div>
           ) : (
             <textarea

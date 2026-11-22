@@ -1,9 +1,11 @@
 import React from 'react';
 import { ChevronRight, Home, RefreshCw } from 'lucide-react';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 export const Breadcrumbs: React.FC = () => {
   const { selectedDataset, currentPath, navigateTo, refreshListing, isLoading } = useDataset();
+  const { t } = useI18n();
 
   const segments = currentPath ? currentPath.split('/').filter(Boolean) : [];
 
@@ -15,7 +17,7 @@ export const Breadcrumbs: React.FC = () => {
           className="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors font-medium text-slate-800 dark:text-zinc-200"
         >
           <Home className="w-4 h-4 text-blue-500" />
-          <span>{selectedDataset?.name || 'Dataset'}</span>
+          <span>{selectedDataset?.name || t('browser.root')}</span>
         </button>
 
         {segments.map((seg, idx) => {
@@ -45,7 +47,7 @@ export const Breadcrumbs: React.FC = () => {
       <button
         onClick={refreshListing}
         disabled={isLoading}
-        title="Atualizar pasta"
+        title={t('common.loading')}
         className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors"
       >
         <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-500' : ''}`} />

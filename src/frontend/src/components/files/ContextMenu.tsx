@@ -2,6 +2,7 @@ import React from 'react';
 import { Eye, Download, Edit3, Trash2, Copy, Move, Info } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface ContextMenuProps {
   x: number;
@@ -31,6 +32,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onShowProperties
 }) => {
   const { selectedDataset, snapshotName } = useDataset();
+  const { t } = useI18n();
   const isReadOnly = selectedDataset?.accessMode === 'ReadOnly' || !!snapshotName;
 
   return (
@@ -44,7 +46,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors"
       >
         <Eye className="w-4 h-4 text-blue-500" />
-        <span>Abrir / Visualizar</span>
+        <span>{t('contextMenu.open')}</span>
       </button>
 
       {item.type === 'File' && (
@@ -53,7 +55,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors"
         >
           <Download className="w-4 h-4 text-emerald-500" />
-          <span>Baixar</span>
+          <span>{t('contextMenu.download')}</span>
         </button>
       )}
 
@@ -65,7 +67,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <Edit3 className="w-4 h-4 text-amber-500" />
-        <span>Renomear</span>
+        <span>{t('contextMenu.rename')}</span>
       </button>
 
       <button
@@ -74,7 +76,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <Copy className="w-4 h-4 text-indigo-500" />
-        <span>Copiar</span>
+        <span>{t('contextMenu.copy')}</span>
       </button>
 
       <button
@@ -82,18 +84,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         onClick={() => { onClose(); onMove(item); }}
         className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <Move className="w-4 h-4 text-cyan-500" />
-        <span>Mover</span>
-      </button>
-
-      <div className="h-px bg-slate-100 dark:bg-zinc-800 my-1" />
-
-      <button
-        onClick={() => { onClose(); onShowProperties(item); }}
-        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors"
-      >
-        <Info className="w-4 h-4 text-blue-500" />
-        <span>Propriedades & Versões</span>
+        <Move className="w-4 h-4 text-purple-500" />
+        <span>{t('contextMenu.move')}</span>
       </button>
 
       <div className="h-px bg-slate-100 dark:bg-zinc-800 my-1" />
@@ -101,10 +93,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <button
         disabled={isReadOnly}
         onClick={() => { onClose(); onDelete(item); }}
-        className="w-full px-3.5 py-2 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full px-3.5 py-2 text-left hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <Trash2 className="w-4 h-4" />
-        <span>Excluir</span>
+        <span>{t('contextMenu.delete')}</span>
+      </button>
+
+      <button
+        onClick={() => { onClose(); onShowProperties(item); }}
+        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors border-t border-slate-100 dark:border-zinc-800 mt-1 pt-2 text-slate-500 dark:text-zinc-400"
+      >
+        <Info className="w-4 h-4 text-blue-400" />
+        <span>{t('contextMenu.properties')}</span>
       </button>
     </div>
   );

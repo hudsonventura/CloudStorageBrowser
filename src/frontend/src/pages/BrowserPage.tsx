@@ -22,6 +22,7 @@ import { CodeEditorModal } from '../components/viewers/CodeEditorModal';
 import { MarkdownEditorModal } from '../components/viewers/MarkdownEditorModal';
 import { FileItem } from '../types';
 import { useDataset } from '../context/DatasetContext';
+import { useI18n } from '../context/I18nContext';
 import { apiClient } from '../api/client';
 import { AlertCircle, FolderX, Database, HardDrive, ShieldCheck, ArrowRight } from 'lucide-react';
 
@@ -40,6 +41,7 @@ export const BrowserPage: React.FC = () => {
     setSelectedItem,
     refreshListing
   } = useDataset();
+  const { t } = useI18n();
 
   // Modals state
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
@@ -228,7 +230,7 @@ export const BrowserPage: React.FC = () => {
         onNewFolder={() => setIsNewFolderOpen(true)}
         onUploadClick={() => fileInputRef.current?.click()}
         onNewTextFile={() => {
-          const name = prompt('Nome do novo arquivo de texto (ex: notas.txt):');
+          const name = prompt(t('browser.namePromptNewText'));
           if (name && selectedDataset) {
             const rel = currentPath ? `${currentPath}/${name}` : name;
             apiClient.put('/files/content', {
@@ -252,16 +254,16 @@ export const BrowserPage: React.FC = () => {
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl shadow-blue-500/10">
                 <h2 className="text-2xl font-black tracking-tight mb-2">
-                  Bem-vindo ao CloudStorageBrowser
+                  {t('browser.welcomeTitle')}
                 </h2>
                 <p className="text-sm text-blue-100 max-w-xl">
-                  Navegador de diretórios e arquivos com suporte nativo a TrueNAS Shadow Copies (ZFS Snapshots), geração de miniaturas com FFmpeg e controle de permissões.
+                  {t('browser.welcomeSubtitle')}
                 </p>
               </div>
 
               <div>
                 <h3 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-4 px-1">
-                  Datasets Disponíveis
+                  {t('browser.availableDatasets')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,14 +284,14 @@ export const BrowserPage: React.FC = () => {
                                 {ds.name}
                               </h4>
                               <p className="text-xs text-slate-400 dark:text-zinc-500">
-                                {ds.accessMode === 'ReadOnly' ? 'Somente Leitura (:ro)' : 'Leitura e Escrita (:rw)'}
+                                {ds.accessMode === 'ReadOnly' ? `${t('common.readOnly')} (:ro)` : `${t('common.readWrite')} (:rw)`}
                               </p>
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-1.5">
                             {ds.hasShadowCopy && (
-                              <span title="TrueNAS Shadow Copy Ativo" className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                              <span title={t('sidebar.zfsActive')} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                                 ZFS
                               </span>
                             )}
@@ -344,13 +346,13 @@ export const BrowserPage: React.FC = () => {
                 ) : isLoading ? (
                   <div className="py-24 text-center text-slate-400 dark:text-zinc-500 flex flex-col items-center justify-center space-y-3">
                     <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm font-medium">Carregando diretório...</p>
+                    <p className="text-sm font-medium">{t('browser.loadingDirectory')}</p>
                   </div>
                 ) : listing?.items.length === 0 ? (
                   <div className="py-24 text-center text-slate-400 dark:text-zinc-500 flex flex-col items-center justify-center space-y-2">
                     <FolderX className="w-12 h-12 text-slate-300 dark:text-zinc-700 stroke-1" />
-                    <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">Esta pasta está vazia</p>
-                    <p className="text-xs text-slate-400 dark:text-zinc-500">Arraste arquivos ou clique em "+ Novo" para adicionar</p>
+                    <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">{t('browser.emptyFolder')}</p>
+                    <p className="text-xs text-slate-400 dark:text-zinc-500">{t('browser.emptyFolderHint')}</p>
                   </div>
                 ) : (
                   <>
@@ -407,7 +409,7 @@ export const BrowserPage: React.FC = () => {
           onDelete={(i) => setDeleteTarget(i)}
           onCopy={async (i) => {
             if (!selectedDataset) return;
-            const dest = prompt('Copiar para diretório relativo:', currentPath);
+            const dest = prompt(t('contextMenu.copyPrompt'), currentPath);
             if (dest !== null) {
               await apiClient.post('/files/copy', {
                 datasetId: selectedDataset.id,
@@ -419,7 +421,7 @@ export const BrowserPage: React.FC = () => {
           }}
           onMove={async (i) => {
             if (!selectedDataset) return;
-            const dest = prompt('Mover para diretório relativo:', currentPath);
+            const dest = prompt(t('contextMenu.movePrompt'), currentPath);
             if (dest !== null) {
               await apiClient.post('/files/move', {
                 datasetId: selectedDataset.id,

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, KeyRound, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { apiClient } from '../../api/client';
+import { useI18n } from '../../context/I18nContext';
 
 interface ChangePasswordModalProps {
   onClose: () => void;
 }
 
 export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) => {
+  const { t } = useI18n();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,17 +33,17 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
     setSuccess(null);
 
     if (!currentPassword) {
-      setError('Por favor, informe a senha atual.');
+      setError(t('modals.currentPassword'));
       return;
     }
 
     if (newPassword.length < 4) {
-      setError('A nova senha deve possuir ao menos 4 caracteres.');
+      setError(t('modals.passwordMinLength'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('A confirmação da senha não coincide com a nova senha.');
+      setError(t('modals.passwordsDoNotMatch'));
       return;
     }
 
@@ -56,12 +58,12 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
         localStorage.setItem('csb_token', res.data.token);
       }
 
-      setSuccess(res.data?.message || 'Senha alterada com sucesso!');
+      setSuccess(res.data?.message || t('modals.passwordSuccess'));
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Falha ao alterar senha. Verifique a senha atual.';
+      const msg = err?.response?.data?.message || 'Error changing password.';
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -79,7 +81,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-base">
             <KeyRound className="w-5 h-5 text-blue-500" />
-            <span>Alterar Senha de Acesso</span>
+            <span>{t('modals.changePasswordTitle')}</span>
           </div>
           <button
             onClick={onClose}
@@ -106,7 +108,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-zinc-300 mb-1.5">
-              Senha Atual
+              {t('modals.currentPassword')}
             </label>
             <div className="relative">
               <input
@@ -114,7 +116,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Informe sua senha atual"
+                placeholder={t('modals.currentPassword')}
                 className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -129,7 +131,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-zinc-300 mb-1.5">
-              Nova Senha
+              {t('modals.newPassword')}
             </label>
             <div className="relative">
               <input
@@ -137,7 +139,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 4 caracteres"
+                placeholder={t('modals.passwordMinLength')}
                 className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -152,14 +154,14 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-zinc-300 mb-1.5">
-              Confirmar Nova Senha
+              {t('modals.confirmPassword')}
             </label>
             <input
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Digite a nova senha novamente"
+              placeholder={t('modals.confirmPassword')}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -171,14 +173,14 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClos
               disabled={isLoading}
               className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading || !currentPassword || !newPassword || !confirmPassword}
               className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-40"
             >
-              {isLoading ? 'Salvando...' : 'Salvar Senha'}
+              {isLoading ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>

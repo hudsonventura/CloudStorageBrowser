@@ -2,6 +2,7 @@ import React from 'react';
 import { FileText, Image as ImageIcon, Video, Music, FileCode, Archive, ShieldCheck } from 'lucide-react';
 import { FileItem, FileCategory } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface FileGridProps {
   files: FileItem[];
@@ -11,6 +12,7 @@ interface FileGridProps {
 
 export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpenFile }) => {
   const { selectedDataset, snapshotName, selectedItem, setSelectedItem } = useDataset();
+  const { t } = useI18n();
 
   if (files.length === 0) return null;
 
@@ -75,7 +77,7 @@ export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpen
   return (
     <div>
       <h3 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-3 px-1">
-        Arquivos
+        {t('browser.files')}
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {files.map((file) => {

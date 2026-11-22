@@ -3,6 +3,7 @@ import { X, Edit3 } from 'lucide-react';
 import { FileItem } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface RenameModalProps {
   item: FileItem;
@@ -11,6 +12,7 @@ interface RenameModalProps {
 
 export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
   const { selectedDataset, refreshListing } = useDataset();
+  const { t } = useI18n();
   const [newName, setNewName] = useState(item.name);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
       refreshListing();
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Falha ao renomear');
+      setError(err?.response?.data?.message || 'Error renaming item');
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +57,7 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-base">
             <Edit3 className="w-5 h-5 text-amber-500" />
-            <span>Renomear</span>
+            <span>{t('modals.renameTitle')}</span>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200">
             <X className="w-4 h-4" />
@@ -71,7 +73,7 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-zinc-300 mb-1.5">
-              Novo Nome
+              {t('modals.renamePlaceholder')}
             </label>
             <input
               type="text"
@@ -89,14 +91,14 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !newName.trim() || newName === item.name}
               className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>

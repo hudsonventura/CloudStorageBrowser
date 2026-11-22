@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { X, Download, FileWarning, FileQuestion, HardDrive, Calendar } from 'lucide-react';
+import { X, Download, FileWarning } from 'lucide-react';
 import { FileItem } from '../../types';
-import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface UnsupportedFileModalProps {
   item: FileItem;
@@ -16,7 +16,7 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
   onClose,
   onDownload
 }) => {
-  const { selectedDataset } = useDataset();
+  const { t, locale } = useI18n();
 
   // Close on Escape key
   useEffect(() => {
@@ -37,13 +37,13 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleString('pt-BR');
+      return new Date(dateStr).toLocaleString(locale);
     } catch {
       return dateStr;
     }
   };
 
-  const ext = item.extension ? item.extension.replace('.', '').toUpperCase() : 'ARQUIVO';
+  const ext = item.extension ? item.extension.replace('.', '').toUpperCase() : 'FILE';
 
   return (
     <div
@@ -78,10 +78,10 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Pré-visualização Indisponível
+              {t('modals.unsupportedTitle')}
             </h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
-              Este arquivo não possui suporte a pré-visualização direta no navegador. Faça o download para executá-lo ou visualizá-lo localmente.
+              {t('modals.unsupportedNotice')}
             </p>
           </div>
         </div>
@@ -89,16 +89,16 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
         {/* File Specs */}
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800 text-xs space-y-2 text-slate-600 dark:text-zinc-300">
           <div className="flex justify-between">
-            <span className="text-slate-400 dark:text-zinc-500">Tamanho:</span>
+            <span className="text-slate-400 dark:text-zinc-500">{t('properties.size')}:</span>
             <span className="font-semibold text-slate-800 dark:text-zinc-100 font-mono">{formatBytes(item.size)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400 dark:text-zinc-500">Última Modificação:</span>
+            <span className="text-slate-400 dark:text-zinc-500">{t('modals.lastModified')}</span>
             <span>{formatDate(item.lastModifiedAtUtc)}</span>
           </div>
           {snapshotName && (
             <div className="flex justify-between text-amber-600 dark:text-amber-400">
-              <span>Versão do Snapshot:</span>
+              <span>{t('modals.snapshotVersion')}</span>
               <span className="font-mono font-bold">@{snapshotName}</span>
             </div>
           )}
@@ -110,7 +110,7 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
             onClick={onClose}
             className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition-colors"
           >
-            Fechar
+            {t('common.close')}
           </button>
           <button
             onClick={() => {
@@ -120,7 +120,7 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
             className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm transition-all"
           >
             <Download className="w-4 h-4" />
-            <span>Baixar Arquivo</span>
+            <span>{t('modals.unsupportedDownload')}</span>
           </button>
         </div>
       </div>

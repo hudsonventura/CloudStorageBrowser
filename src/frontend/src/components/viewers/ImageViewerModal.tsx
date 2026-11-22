@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ZoomIn, ZoomOut, RotateCw, Download, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface ImageViewerModalProps {
   item: FileItem;
@@ -27,6 +28,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   totalCount
 }) => {
   const { selectedDataset } = useDataset();
+  const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +83,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           <p className="font-semibold text-sm truncate">{item.name}</p>
           {currentIndex && totalCount && (
             <span className="text-xs text-zinc-400 font-mono">
-              ({currentIndex} de {totalCount})
+              ({currentIndex} {t('viewers.of')} {totalCount})
             </span>
           )}
           {snapshotName && (
@@ -94,21 +96,21 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           <button
             onClick={() => setScale(prev => Math.min(prev + 0.25, 3))}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Aumentar zoom (+)"
+            title={t('viewers.zoomIn')}
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setScale(prev => Math.max(prev - 0.25, 0.5))}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Diminuir zoom (-)"
+            title={t('viewers.zoomOut')}
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={() => setRotation(prev => (prev + 90) % 360)}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Girar 90°"
+            title={t('viewers.rotate')}
           >
             <RotateCw className="w-4 h-4" />
           </button>
@@ -116,14 +118,14 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
             href={downloadUrl}
             download={item.name}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Baixar imagem"
+            title={t('viewers.downloadMedia')}
           >
             <Download className="w-4 h-4" />
           </a>
           <button
             onClick={onClose}
             className="p-2 rounded-xl bg-red-600/80 hover:bg-red-600 text-white transition-colors ml-2"
-            title="Fechar (Esc)"
+            title={t('common.close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -145,7 +147,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
               onPrev();
             }}
             className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
-            title="Anterior (Seta Esquerda)"
+            title={t('viewers.previous')}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -159,7 +161,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
               onNext();
             }}
             className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/60 backdrop-blur-md transition-all shadow-2xl hover:scale-110 active:scale-95"
-            title="Próximo (Seta Direita)"
+            title={t('viewers.next')}
           >
             <ChevronRight className="w-6 h-6" />
           </button>
@@ -168,15 +170,15 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 text-zinc-400">
             <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-medium">Carregando imagem...</p>
+            <p className="text-xs font-medium">{t('common.loading')}</p>
           </div>
         )}
 
         {hasError ? (
           <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-3xl text-center max-w-md mx-auto space-y-3">
             <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-            <h3 className="text-sm font-bold text-white">Não foi possível carregar a imagem</h3>
-            <p className="text-xs text-zinc-400">Verifique se o arquivo existe e se você possui permissões de leitura.</p>
+            <h3 className="text-sm font-bold text-white">{t('viewers.failedToLoadImage')}</h3>
+            <p className="text-xs text-zinc-400">{t('viewers.checkPermissions')}</p>
             <button
               onClick={() => {
                 setHasError(false);
@@ -186,7 +188,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium rounded-xl flex items-center space-x-1.5 mx-auto transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Tentar novamente</span>
+              <span>{t('viewers.retry')}</span>
             </button>
           </div>
         ) : (

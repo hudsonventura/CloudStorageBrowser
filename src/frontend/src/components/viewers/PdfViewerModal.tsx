@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { X, Download, ExternalLink } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface PdfViewerModalProps {
   item: FileItem;
@@ -11,6 +12,7 @@ interface PdfViewerModalProps {
 
 export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotName, onClose }) => {
   const { selectedDataset } = useDataset();
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,7 +45,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
         <div className="truncate mr-4">
           <p className="font-semibold text-sm truncate">{item.name}</p>
           {snapshotName && (
-            <p className="text-xs text-amber-400 font-mono">Snapshot: {snapshotName}</p>
+            <p className="text-xs text-amber-400 font-mono">{t('modals.snapshotVersion')} {snapshotName}</p>
           )}
         </div>
 
@@ -53,7 +55,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
             target="_blank"
             rel="noreferrer"
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Abrir em nova janela"
+            title={t('viewers.openInNewWindow')}
           >
             <ExternalLink className="w-4 h-4" />
           </a>
@@ -61,14 +63,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotNa
             href={downloadUrl}
             download={item.name}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
-            title="Baixar PDF"
+            title={t('viewers.downloadPdf')}
           >
             <Download className="w-4 h-4" />
           </a>
           <button
             onClick={onClose}
             className="p-2 rounded-xl bg-red-600/80 hover:bg-red-600 text-white transition-colors ml-2"
-            title="Fechar (Esc)"
+            title={t('common.close')}
           >
             <X className="w-4 h-4" />
           </button>

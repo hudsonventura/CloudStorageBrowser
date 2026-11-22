@@ -3,6 +3,7 @@ import { X, FileText, Folder, Camera, MapPin, Aperture, Clock, Eye, Info, HardDr
 import { FileItem, MediaMetadata } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 import { SnapshotVersionsTab } from '../snapshots/SnapshotVersionsTab';
 
 interface PropertiesSidebarProps {
@@ -13,6 +14,7 @@ interface PropertiesSidebarProps {
 
 export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPreviewSnapshot, onOpenFile }) => {
   const { selectedDataset, currentPath, snapshotName, setSelectedItem, listing } = useDataset();
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<'details' | 'snapshots'>('details');
   const [metadata, setMetadata] = useState<MediaMetadata | null>(null);
 
@@ -43,7 +45,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleString('pt-BR');
+      return date.toLocaleString(locale);
     } catch {
       return dateStr;
     }
@@ -127,7 +129,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
-          Detalhes
+          {t('properties.tabDetails')}
         </button>
         <button
           onClick={() => setActiveTab('snapshots')}
@@ -137,7 +139,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
-          Versões Anteriores (ZFS)
+          {t('properties.tabSnapshots')}
         </button>
       </div>
 
@@ -245,16 +247,16 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
               {/* Basic Info */}
               <div>
                 <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-3">
-                  Informações Básicas
+                  {t('properties.tabDetails')}
                 </h4>
                 <div className="space-y-3 text-xs">
                   <div>
-                    <span className="text-slate-400 dark:text-zinc-500">Nome:</span>
+                    <span className="text-slate-400 dark:text-zinc-500">{t('properties.name')}:</span>
                     <p className="font-medium text-slate-800 dark:text-zinc-100 break-words mt-0.5">{item.name}</p>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 dark:text-zinc-500">Caminho:</span>
+                    <span className="text-slate-400 dark:text-zinc-500">{t('properties.path')}:</span>
                     <p className="font-mono text-[11px] text-slate-600 dark:text-zinc-400 break-words mt-0.5">
                       /{item.relativePath}
                     </p>
@@ -262,26 +264,26 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
 
                   {item.type === 'File' && (
                     <div>
-                      <span className="text-slate-400 dark:text-zinc-500">Tamanho:</span>
+                      <span className="text-slate-400 dark:text-zinc-500">{t('properties.size')}:</span>
                       <p className="font-medium text-slate-800 dark:text-zinc-100 mt-0.5">{formatBytes(item.size)}</p>
                     </div>
                   )}
 
                   <div>
-                    <span className="text-slate-400 dark:text-zinc-500">Última Modificação:</span>
+                    <span className="text-slate-400 dark:text-zinc-500">{t('properties.modified')}:</span>
                     <p className="font-medium text-slate-800 dark:text-zinc-100 mt-0.5">{formatDate(item.lastModifiedAtUtc)}</p>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 dark:text-zinc-500">Modo de Acesso:</span>
+                    <span className="text-slate-400 dark:text-zinc-500">{t('properties.permission')}:</span>
                     <div className="mt-1">
                       {item.isReadOnly ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                          Somente Leitura (:ro)
+                          {t('common.readOnly')} (:ro)
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                          Leitura e Escrita (:rw)
+                          {t('common.readWrite')} (:rw)
                         </span>
                       )}
                     </div>

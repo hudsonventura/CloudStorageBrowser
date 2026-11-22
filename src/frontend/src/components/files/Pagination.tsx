@@ -1,9 +1,11 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 export const Pagination: React.FC = () => {
   const { listing, page, setPage, pageSize, setPageSize } = useDataset();
+  const { t } = useI18n();
 
   if (!listing || listing.totalItems === 0) return null;
 
@@ -15,13 +17,15 @@ export const Pagination: React.FC = () => {
     <div className="py-3 px-6 border-t border-slate-200 dark:border-zinc-800 bg-white/90 dark:bg-[#0c0c0e]/95 backdrop-blur flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 select-none transition-colors">
       <div className="flex items-center space-x-4">
         <span>
-          Exibindo <span className="font-semibold text-slate-900 dark:text-zinc-100">{startItem}-{endItem}</span> de{' '}
-          <span className="font-semibold text-slate-900 dark:text-zinc-100">{listing.totalItems}</span> itens
+          {t('pagination.showing', {
+            from: `${startItem}-${endItem}`,
+            to: '',
+            total: listing.totalItems
+          })}
         </span>
 
         {/* Page size dropdown */}
         <div className="flex items-center space-x-1.5">
-          <span>Por página:</span>
           <select
             value={pageSize}
             onChange={(e) => {
@@ -31,7 +35,7 @@ export const Pagination: React.FC = () => {
             className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value={50}>50</option>
-            <option value={100}>100 (Padrão)</option>
+            <option value={100}>100</option>
             <option value={250}>250</option>
             <option value={500}>500</option>
           </select>
@@ -44,7 +48,7 @@ export const Pagination: React.FC = () => {
           onClick={() => setPage(1)}
           disabled={page <= 1}
           className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
-          title="Primeira página"
+          title={t('pagination.previous')}
         >
           <ChevronsLeft className="w-3.5 h-3.5" />
         </button>
@@ -52,20 +56,20 @@ export const Pagination: React.FC = () => {
           onClick={() => setPage(page - 1)}
           disabled={page <= 1}
           className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
-          title="Página anterior"
+          title={t('pagination.previous')}
         >
           <ChevronLeft className="w-3.5 h-3.5" />
         </button>
 
         <span className="px-3 py-1 font-semibold text-slate-800 dark:text-zinc-200">
-          {page} / {totalPages}
+          {t('pagination.pageOf', { page, pages: totalPages })}
         </span>
 
         <button
           onClick={() => setPage(page + 1)}
           disabled={page >= totalPages}
           className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
-          title="Próxima página"
+          title={t('pagination.next')}
         >
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
@@ -73,7 +77,7 @@ export const Pagination: React.FC = () => {
           onClick={() => setPage(totalPages)}
           disabled={page >= totalPages}
           className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
-          title="Última página"
+          title={t('pagination.next')}
         >
           <ChevronsRight className="w-3.5 h-3.5" />
         </button>

@@ -3,6 +3,7 @@ import { Eye, Download, ExternalLink, RefreshCw, AlertCircle } from 'lucide-reac
 import { FileItem, SnapshotVersion } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface SnapshotVersionsTabProps {
   item: FileItem;
@@ -11,6 +12,7 @@ interface SnapshotVersionsTabProps {
 
 export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, onPreviewSnapshot }) => {
   const { selectedDataset } = useDataset();
+  const { t, locale } = useI18n();
   const [onlyModified, setOnlyModified] = useState(true);
   const [versions, setVersions] = useState<SnapshotVersion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,7 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleString('pt-BR');
+      return new Date(dateStr).toLocaleString(locale);
     } catch {
       return dateStr;
     }
@@ -71,6 +73,14 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
     window.open(url, '_blank');
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'Modified': return t('snapshots.statusModified');
+      case 'Added': return t('snapshots.statusAdded');
+      default: return t('snapshots.statusUnchanged');
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filter Checkbox */}
@@ -82,17 +92,17 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
             onChange={(e) => setOnlyModified(e.target.checked)}
             className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800"
           />
-          <span>Mostrar apenas versões com modificações</span>
+          <span>{t('snapshots.filterModified')}</span>
         </label>
         <p className="mt-1 text-[11px] text-slate-500 dark:text-zinc-400 pl-6">
-          O TrueNAS cria snapshots periódicos; este filtro oculta datas em que o item permaneceu idêntico.
+          {t('snapshots.filterHint')}
         </p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8 text-slate-400 dark:text-zinc-500 space-x-2">
           <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
-          <span className="text-xs">Consultando snapshots ZFS...</span>
+          <span className="text-xs">{t('snapshots.querying')}</span>
         </div>
       ) : error ? (
         <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs rounded-xl flex items-center space-x-2 border border-red-200 dark:border-red-900">
@@ -101,7 +111,7 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
         </div>
       ) : versions.length === 0 ? (
         <div className="text-center py-8 text-slate-400 dark:text-zinc-500 text-xs">
-          Nenhuma versão histórica encontrada nos snapshots.
+          {t('snapshots.noVersions')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -116,7 +126,7 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
                 </span>
                 {version.changeStatus !== 'Unchanged' && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                    {version.changeStatus}
+                    {getStatusLabel(version.changeStatus)}
                   </span>
                 )}
               </div>
@@ -134,7 +144,7 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
                     className="w-full py-1.5 px-2.5 rounded-lg bg-blue-50 dark:bg-zinc-800 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center justify-center space-x-1 transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Abrir em nova aba</span>
+                    <span>{t('snapshots.openInNewTab')}</span>
                   </button>
                 ) : (
                   <>
@@ -143,14 +153,14 @@ export const SnapshotVersionsTab: React.FC<SnapshotVersionsTabProps> = ({ item, 
                       className="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-medium flex items-center justify-center space-x-1 transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Visualizar</span>
+                      <span>{t('snapshots.preview')}</span>
                     </button>
                     <button
                       onClick={() => handleDownloadSnapshot(version.snapshotName)}
                       className="flex-1 py-1.5 px-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center justify-center space-x-1 transition-colors shadow-xs"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Baixar</span>
+                      <span>{t('snapshots.download')}</span>
                     </button>
                   </>
                 )}

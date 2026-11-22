@@ -1,6 +1,7 @@
 import React from 'react';
 import { HardDrive, Folder, ShieldCheck, Database, RefreshCw } from 'lucide-react';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 export const SidebarLeft: React.FC = () => {
   const {
@@ -11,6 +12,7 @@ export const SidebarLeft: React.FC = () => {
     navigateTo,
     refreshDatasets
   } = useDataset();
+  const { t } = useI18n();
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -27,12 +29,12 @@ export const SidebarLeft: React.FC = () => {
         <div>
           <div className="flex items-center justify-between px-2 mb-2">
             <span className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-              Datasets
+              {t('sidebar.datasets')}
             </span>
             <button
               onClick={() => refreshDatasets()}
               className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
-              title="Atualizar lista de volumes mapeados"
+              title={t('sidebar.refreshDatasets')}
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -60,12 +62,12 @@ export const SidebarLeft: React.FC = () => {
 
                   <div className="flex items-center space-x-1 shrink-0 ml-2">
                     {dataset.hasShadowCopy && (
-                      <span title="TrueNAS Shadow Copy / Snapshots Ativos" className="p-1 rounded text-emerald-500">
+                      <span title={t('sidebar.zfsActive')} className="p-1 rounded text-emerald-500">
                         <ShieldCheck className="w-3.5 h-3.5" />
                       </span>
                     )}
                     {isRO && (
-                      <span title="Somente Leitura (:ro)" className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 rounded border border-amber-300 dark:border-amber-800">
+                      <span title={t('sidebar.roBadge')} className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 rounded border border-amber-300 dark:border-amber-800">
                         RO
                       </span>
                     )}
@@ -80,7 +82,7 @@ export const SidebarLeft: React.FC = () => {
         <div>
           <div className="px-2 mb-2">
             <span className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-              Navegação
+              {t('sidebar.navigation')}
             </span>
           </div>
 
@@ -94,7 +96,7 @@ export const SidebarLeft: React.FC = () => {
               }`}
             >
               <Folder className="w-4 h-4 text-blue-500" />
-              <span>Todos os Arquivos</span>
+              <span>{t('browser.folders')}</span>
             </button>
           </div>
         </div>

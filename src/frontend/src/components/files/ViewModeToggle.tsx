@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { LayoutGrid, List, Table, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { ViewMode, SortField, SortDirection } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 export const ViewModeToggle: React.FC = () => {
   const { viewMode, setViewMode, sortBy, setSortBy, sortDirection, setSortDirection } = useDataset();
+  const { t } = useI18n();
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   const sortOptions: { label: string; field: SortField }[] = [
-    { label: 'Nome', field: 'Name' },
-    { label: 'Tamanho', field: 'Size' },
-    { label: 'Data de Modificação', field: 'LastModified' },
-    { label: 'Tipo / Extensão', field: 'Extension' }
+    { label: t('filesTable.colName'), field: 'Name' },
+    { label: t('filesTable.colSize'), field: 'Size' },
+    { label: t('filesTable.colLastModified'), field: 'LastModified' },
+    { label: t('filesTable.colType'), field: 'Extension' }
   ];
 
   return (
@@ -20,7 +22,7 @@ export const ViewModeToggle: React.FC = () => {
       <div className="flex items-center bg-slate-100 dark:bg-zinc-850 p-0.5 rounded-xl border border-slate-200 dark:border-zinc-700">
         <button
           onClick={() => setViewMode('Thumbnails')}
-          title="Grade / Miniaturas"
+          title={t('filesTable.viewThumbnails')}
           className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
             viewMode === 'Thumbnails'
               ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -31,7 +33,7 @@ export const ViewModeToggle: React.FC = () => {
         </button>
         <button
           onClick={() => setViewMode('Details')}
-          title="Detalhes"
+          title={t('filesTable.viewDetails')}
           className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
             viewMode === 'Details'
               ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -42,7 +44,7 @@ export const ViewModeToggle: React.FC = () => {
         </button>
         <button
           onClick={() => setViewMode('List')}
-          title="Lista"
+          title={t('filesTable.viewThumbnails')}
           className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
             viewMode === 'List'
               ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm'

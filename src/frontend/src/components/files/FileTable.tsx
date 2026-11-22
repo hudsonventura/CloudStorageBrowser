@@ -2,6 +2,7 @@ import React from 'react';
 import { Folder, FileText, ShieldCheck, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { FileItem, SortField } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 
 interface FileTableProps {
   items: FileItem[];
@@ -11,6 +12,7 @@ interface FileTableProps {
 
 export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOpenFile }) => {
   const { navigateTo, selectedItem, setSelectedItem, sortBy, setSortBy, sortDirection, setSortDirection } = useDataset();
+  const { t } = useI18n();
 
   if (items.length === 0) return null;
 
@@ -60,7 +62,7 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
               className="py-3 px-4 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
             >
               <div className="flex items-center space-x-1.5">
-                <span>Nome</span>
+                <span>{t('filesTable.colName')}</span>
                 {renderSortIcon('Name')}
               </div>
             </th>
@@ -69,7 +71,7 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
               className="py-3 px-4 w-32 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
             >
               <div className="flex items-center space-x-1.5">
-                <span>Tamanho</span>
+                <span>{t('filesTable.colSize')}</span>
                 {renderSortIcon('Size')}
               </div>
             </th>
@@ -78,7 +80,7 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
               className="py-3 px-4 w-44 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
             >
               <div className="flex items-center space-x-1.5">
-                <span>Modificado Em</span>
+                <span>{t('filesTable.colLastModified')}</span>
                 {renderSortIcon('LastModified')}
               </div>
             </th>
@@ -87,7 +89,7 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
               className="py-3 px-4 w-24 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
             >
               <div className="flex items-center space-x-1.5">
-                <span>Tipo</span>
+                <span>{t('filesTable.colType')}</span>
                 {renderSortIcon('Extension')}
               </div>
             </th>

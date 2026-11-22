@@ -27,6 +27,7 @@ import {
 import { FileItem } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
+import { useI18n } from '../../context/I18nContext';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface MarkdownEditorModalProps {
@@ -43,6 +44,7 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
   onClose
 }) => {
   const { selectedDataset, refreshListing } = useDataset();
+  const { t } = useI18n();
   const [content, setContent] = useState('');
   const [originalContent, setOriginalContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -72,12 +74,12 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
       })
       .catch(err => {
         setMessage({
-          text: err?.response?.data?.message || 'Falha ao carregar conteúdo do markdown',
+          text: err?.response?.data?.message || t('viewers.loadError'),
           isError: true
         });
       })
       .finally(() => setIsLoading(false));
-  }, [item.relativePath, selectedDataset?.id, snapshotName]);
+  }, [item.relativePath, selectedDataset?.id, snapshotName, t]);
 
   // Keyboard shortcut for Save (Ctrl+S / Cmd+S) and Close (Escape)
   useEffect(() => {
@@ -106,12 +108,12 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
         content
       });
       setOriginalContent(content);
-      setMessage({ text: 'Arquivo salvo com sucesso!', isError: false });
+      setMessage({ text: t('viewers.saveSuccess'), isError: false });
       refreshListing();
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
       setMessage({
-        text: err?.response?.data?.message || 'Erro ao salvar arquivo markdown',
+        text: err?.response?.data?.message || t('viewers.saveError'),
         isError: true
       });
     } finally {
@@ -185,7 +187,7 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
             )}
             {isReadOnly && (
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                Somente Leitura
+                {t('common.readOnly')}
               </span>
             )}
           </div>
@@ -199,10 +201,10 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
                   ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
-              title="Editor e Pré-visualização lado a lado"
+              title={t('viewers.split')}
             >
               <Columns className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Divisão</span>
+              <span className="hidden sm:inline">{t('viewers.split')}</span>
             </button>
             <button
               onClick={() => setViewMode('edit')}
@@ -211,10 +213,10 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
                   ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
-              title="Somente Editor de texto"
+              title={t('viewers.editor')}
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Editor</span>
+              <span className="hidden sm:inline">{t('viewers.editor')}</span>
             </button>
             <button
               onClick={() => setViewMode('preview')}
@@ -223,10 +225,10 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
                   ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
-              title="Somente Pré-visualização formatada"
+              title={t('viewers.preview')}
             >
               <Eye className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Preview</span>
+              <span className="hidden sm:inline">{t('viewers.preview')}</span>
             </button>
           </div>
 
@@ -237,16 +239,16 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
                 onClick={handleSave}
                 disabled={isSaving || isLoading || !isDirty}
                 className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all disabled:opacity-50"
-                title="Salvar alterações (Ctrl+S)"
+                title={t('viewers.ctrlSToSave')}
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>{isSaving ? 'Salvando...' : 'Salvar'}</span>
+                <span>{isSaving ? t('common.saving') : t('common.save')}</span>
               </button>
             )}
             <button
               onClick={onClose}
               className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-slate-200/50 dark:hover:bg-zinc-800 transition-colors"
-              title="Fechar (Esc)"
+              title={t('common.close')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -439,7 +441,7 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center space-x-2 text-slate-400 dark:text-zinc-500">
               <RefreshCw className="w-5 h-5 animate-spin text-blue-500" />
-              <span className="text-sm">Carregando markdown...</span>
+              <span className="text-sm">{t('common.loading')}</span>
             </div>
           ) : (
             <>
@@ -456,15 +458,15 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleTextareaKeyDown}
                     readOnly={isReadOnly}
-                    placeholder="Digite seu texto em Markdown..."
+                    placeholder="Markdown..."
                     className="flex-1 w-full p-6 font-mono text-sm leading-relaxed resize-none bg-transparent text-slate-800 dark:text-zinc-200 focus:outline-none placeholder-slate-400 dark:placeholder-zinc-600"
                     spellCheck={false}
                   />
                   <div className="px-6 py-2 border-t border-slate-200/60 dark:border-zinc-800/60 flex items-center justify-between text-[11px] text-slate-400 dark:text-zinc-500 bg-white dark:bg-zinc-900 select-none">
                     <span>
-                      {content.split('\n').length} linhas | {content.length} caracteres
+                      {content.split('\n').length} {t('viewers.lines')} | {content.length} {t('viewers.chars')}
                     </span>
-                    <span className="hidden sm:inline">Ctrl+S para salvar</span>
+                    <span className="hidden sm:inline">{t('viewers.ctrlSToSave')}</span>
                   </div>
                 </div>
               )}

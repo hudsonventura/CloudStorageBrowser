@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check, ExternalLink } from 'lucide-react';
+import { useI18n } from '../../context/I18nContext';
 
 interface MarkdownRendererProps {
   content: string;
@@ -7,6 +8,7 @@ interface MarkdownRendererProps {
 }
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+  const { t } = useI18n();
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
   const copyCode = (code: string, index: number) => {
@@ -177,17 +179,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             <button
               onClick={() => copyCode(fullCode, idx)}
               className="flex items-center space-x-1.5 px-2 py-1 rounded-md hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
-              title="Copiar código"
+              title={t('common.copy')}
             >
               {copiedCodeIndex === idx ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400 font-sans">Copiado!</span>
+                  <span className="text-emerald-400 font-sans">{t('common.copied')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span className="font-sans">Copiar</span>
+                  <span className="font-sans">{t('common.copy')}</span>
                 </>
               )}
             </button>
@@ -434,7 +436,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
   return (
     <div className={`markdown-body select-text text-slate-800 dark:text-zinc-200 ${className}`}>
       {elements.length === 0 ? (
-        <p className="text-slate-400 dark:text-zinc-500 italic text-sm">Arquivo markdown vazio.</p>
+        <p className="text-slate-400 dark:text-zinc-500 italic text-sm">{t('viewers.emptyMarkdown')}</p>
       ) : (
         elements
       )}
