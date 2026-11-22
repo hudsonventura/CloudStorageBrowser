@@ -31,13 +31,14 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isFit, setIsFit] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, posX: 0, posY: 0 });
 
   const imgRef = useRef<HTMLImageElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   useEffect(() => {
     setScale(1);
     setRotation(0);
+    setPosition({ x: 0, y: 0 });
     setIsFit(true);
     setIsLoading(true);
     setHasError(false);
@@ -57,10 +59,12 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
     if (isFit) {
       // Go directly from Fit to 100%
       setScale(1);
+      setPosition({ x: 0, y: 0 });
       setIsFit(false);
     } else {
       // Go back to Fit
       setScale(1);
+      setPosition({ x: 0, y: 0 });
       setIsFit(true);
     }
   };
@@ -81,6 +85,32 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [hasPrev, hasNext, onPrev, onNext, isFit]);
 
+  // Native listeners on stage to prevent middle-click browser autoscroll
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleNativeMouseDown = (e: MouseEvent) => {
+      if (e.button === 1) {
+        e.preventDefault();
+      }
+    };
+
+    const handleNativeAuxClick = (e: MouseEvent) => {
+      if (e.button === 1) {
+        e.preventDefault();
+      }
+    };
+
+    stage.addEventListener('mousedown', handleNativeMouseDown);
+    stage.addEventListener('auxclick', handleNativeAuxClick);
+
+    return () => {
+      stage.removeEventListener('mousedown', handleNativeMouseDown);
+      stage.removeEventListener('auxclick', handleNativeAuxClick);
+    };
+  }, []);
+
   // Mouse wheel zoom when zoom is active (not fit)
   useEffect(() => {
     const stage = stageRef.current;
@@ -100,29 +130,50 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
     return () => stage.removeEventListener('wheel', handleWheel);
   }, [isFit]);
 
-  // Drag-to-pan handlers when in zoom mode
+  // Drag-to-pan handlers when in zoom mode (supports middle mouse button 1 & left button 0)
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isFit || e.button !== 0 || !stageRef.current) return;
+    if (isFit || (e.button !== 0 && e.button !== 1)) return;
+    e.preventDefault();
     setIsDragging(true);
     setDragStart({
       x: e.clientX,
       y: e.clientY,
-      scrollLeft: stageRef.current.scrollLeft,
-      scrollTop: stageRef.current.scrollTop
+      posX: position.x,
+      posY: position.y
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !stageRef.current || isFit) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    stageRef.current.scrollLeft = dragStart.scrollLeft - dx;
-    stageRef.current.scrollTop = dragStart.scrollTop - dy;
-  };
+  useEffect(() => {
+    if (!isDragging) return;
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      // Stop dragging if neither left (1) nor middle (4) mouse button is pressed
+      if ((e.buttons & 1) === 0 && (e.buttons & 4) === 0) {
+        setIsDragging(false);
+        return;
+      }
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      setPosition({
+        x: dragStart.posX + dx,
+        y: dragStart.posY + dy
+      });
+    };
+
+    const handleWindowMouseUp = (e: MouseEvent) => {
+      if (e.button === 0 || e.button === 1) {
+        setIsDragging(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [isDragging, dragStart]);
 
   if (!selectedDataset) return null;
 
@@ -177,7 +228,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           <button
             onClick={() => {
               setIsFit(false);
-              setScale(prev => Math.min(prev + 0.25, 10));
+              setScale(prev => Math.min(parseFloat((prev + 0.25).toFixed(2)), 10));
             }}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title={t('viewers.zoomIn')}
@@ -186,11 +237,8 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           </button>
           <button
             onClick={() => {
-              setScale(prev => {
-                const next = Math.max(prev - 0.25, 0.5);
-                if (next <= 1) setIsFit(true);
-                return next;
-              });
+              if (isFit) return;
+              setScale(prev => Math.max(parseFloat((prev - 0.25).toFixed(2)), 0.25));
             }}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title={t('viewers.zoomOut')}
@@ -226,13 +274,14 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
       <div
         ref={stageRef}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        onAuxClick={(e) => {
+          if (e.button === 1) e.preventDefault();
+        }}
         onClick={(e) => {
           if (e.target === e.currentTarget && isFit) onClose();
         }}
-        className={`flex-1 w-full flex items-center justify-center p-6 relative bg-black select-none ${
-          isFit ? 'overflow-hidden' : `overflow-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
+        className={`flex-1 w-full flex items-center justify-center p-6 relative bg-black select-none overflow-hidden ${
+          !isFit ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
         }`}
       >
         {/* Navigation Button: Prev < */}
@@ -292,18 +341,22 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
             ref={imgRef}
             src={rawUrl}
             alt={item.name}
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
             onLoad={() => setIsLoading(false)}
             onError={() => {
               setIsLoading(false);
               setHasError(true);
             }}
             style={{
-              transform: `scale(${scale}) rotate(${rotation}deg)`,
-              transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
+              transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
+              transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
             className={`object-contain rounded-lg shadow-2xl select-none ${
               isFit ? 'max-h-[85vh] max-w-[85vw]' : 'max-h-none max-w-none'
-            } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            } ${isLoading ? 'opacity-0' : 'opacity-100'} ${
+              !isFit ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+            }`}
           />
         )}
       </div>
