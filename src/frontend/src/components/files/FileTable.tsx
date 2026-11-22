@@ -137,13 +137,35 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
                   )}
                 </td>
                 <td className="py-2.5 px-4 font-mono text-slate-500 dark:text-zinc-400">
-                  {item.type === 'File' ? formatBytes(item.size) : '--'}
+                  {item.type === 'File' ? (
+                    formatBytes(item.size)
+                  ) : item.isCalculatingStats ? (
+                    <span className="text-amber-500/80 dark:text-amber-400/80 text-[10px] animate-pulse">
+                      {t('common.calculating')}
+                    </span>
+                  ) : item.subitemsCount !== undefined && item.subitemsCount !== null ? (
+                    formatBytes(item.size)
+                  ) : (
+                    '--'
+                  )}
                 </td>
                 <td className="py-2.5 px-4 text-slate-500 dark:text-zinc-400">
                   {formatDate(item.lastModifiedAtUtc)}
                 </td>
-                <td className="py-2.5 px-4 font-mono text-slate-400 dark:text-zinc-500 uppercase">
-                  {item.type === 'Directory' ? 'Pasta' : item.extension.replace('.', '') || 'Arquivo'}
+                <td className="py-2.5 px-4 font-mono text-slate-400 dark:text-zinc-500">
+                  {item.type === 'Directory' ? (
+                    item.subitemsCount !== undefined && item.subitemsCount !== null ? (
+                      <span className="text-[11px]">
+                        {item.subitemsCount === 1
+                          ? `Pasta (1 ${t('common.item')})`
+                          : `Pasta (${item.subitemsCount} ${t('common.items')})`}
+                      </span>
+                    ) : (
+                      'Pasta'
+                    )
+                  ) : (
+                    item.extension.replace('.', '').toUpperCase() || 'ARQUIVO'
+                  )}
                 </td>
               </tr>
             );

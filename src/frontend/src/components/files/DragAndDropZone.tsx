@@ -42,18 +42,18 @@ export const DragAndDropZone: React.FC<DragAndDropZoneProps> = ({ children }) =>
     const formData = new FormData();
     formData.append('datasetId', selectedDataset.id.toString());
     formData.append('targetPath', currentPath);
+    formData.append('directory', currentPath);
 
     files.forEach(file => {
       formData.append('files', file);
     });
 
     try {
-      await apiClient.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await apiClient.post('/files/upload', formData);
       refreshListing();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload failed', err);
+      alert(err?.response?.data?.message || 'Falha ao enviar arquivos.');
     } finally {
       setIsUploading(false);
     }

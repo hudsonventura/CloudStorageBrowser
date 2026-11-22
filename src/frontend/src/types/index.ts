@@ -57,6 +57,23 @@ export interface FileItem {
   isReadOnly: boolean;
   hasShadowCopy: boolean;
   hasThumbnail: boolean;
+  subitemsCount?: number;
+  filesCount?: number;
+  directoriesCount?: number;
+  isCalculatingStats?: boolean;
+}
+
+export interface FolderStats {
+  datasetId: number;
+  relativePath: string;
+  snapshotName?: string;
+  totalBytes: number;
+  filesCount: number;
+  directoriesCount: number;
+  totalSubitemsCount: number;
+  calculatedAtUtc?: string;
+  isCalculating: boolean;
+  isStale: boolean;
 }
 
 export interface DirectoryListing {
@@ -70,6 +87,7 @@ export interface DirectoryListing {
   pageSize: number;
   totalItems: number;
   totalPages: number;
+  currentFolderStats?: FolderStats;
 }
 
 export interface SnapshotVersion {

@@ -14,13 +14,16 @@ public class FilesController : ControllerBase
 {
     private readonly IStorageService _storageService;
     private readonly IDatasetManager _datasetManager;
+    private readonly IFolderStatsService _folderStatsService;
 
     public FilesController(
         IStorageService storageService,
-        IDatasetManager datasetManager)
+        IDatasetManager datasetManager,
+        IFolderStatsService folderStatsService)
     {
         _storageService = storageService;
         _datasetManager = datasetManager;
+        _folderStatsService = folderStatsService;
     }
 
     [HttpGet("browse")]
@@ -66,8 +69,16 @@ public class FilesController : ControllerBase
             Category = item.Category,
             IsReadOnly = item.IsReadOnly,
             HasShadowCopy = item.HasShadowCopy,
-            HasThumbnail = item.Category == FileCategory.Image || item.Category == FileCategory.Video
+            HasThumbnail = item.Category == FileCategory.Image || item.Category == FileCategory.Video,
+            SubitemsCount = item.SubitemsCount,
+            FilesCount = item.FilesCount,
+            DirectoriesCount = item.DirectoriesCount,
+            IsCalculatingStats = item.IsCalculatingStats
         }).ToList();
+
+        // Also fetch or queue stats for current directory
+        var currentStats = await _folderStatsService.GetFolderStatsAsync(
+            dataset.Id, cleanPath, snapshotName, queueIfMissing: true, cancellationToken);
 
         var response = new DirectoryListingDto
         {
@@ -80,10 +91,48 @@ public class FilesController : ControllerBase
             Page = pagedResult.Page,
             PageSize = pagedResult.PageSize,
             TotalItems = pagedResult.TotalItems,
-            TotalPages = pagedResult.TotalPages
+            TotalPages = pagedResult.TotalPages,
+            CurrentFolderStats = currentStats
         };
 
         return Ok(response);
+    }
+
+    [HttpGet("folder-stats")]
+    public async Task<ActionResult<FolderStatsDto>> GetFolderStats(
+        [FromQuery] int datasetId,
+        [FromQuery] string? path,
+        [FromQuery] string? snapshotName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var stats = await _folderStatsService.GetFolderStatsAsync(
+            datasetId, path ?? string.Empty, snapshotName, queueIfMissing: true, cancellationToken);
+
+        if (stats == null)
+        {
+            return Ok(new FolderStatsDto
+            {
+                DatasetId = datasetId,
+                RelativePath = path ?? string.Empty,
+                SnapshotName = snapshotName,
+                IsCalculating = true
+            });
+        }
+
+        return Ok(stats);
+    }
+
+    [HttpGet("folder-stats-batch")]
+    public async Task<ActionResult<Dictionary<string, FolderStatsDto>>> GetFolderStatsBatch(
+        [FromQuery] int datasetId,
+        [FromQuery] string[] paths,
+        [FromQuery] string? snapshotName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _folderStatsService.GetBatchFolderStatsAsync(
+            datasetId, paths ?? Array.Empty<string>(), snapshotName, queueIfMissing: true, cancellationToken);
+
+        return Ok(result);
     }
 
     [HttpGet("raw")]
@@ -127,7 +176,9 @@ public class FilesController : ControllerBase
     public async Task<IActionResult> Upload(
         [FromForm] int datasetId,
         [FromForm] string? targetPath,
-        [FromForm] List<IFormFile> files,
+        [FromForm] string? directory,
+        [FromForm] List<IFormFile>? files,
+        [FromForm] IFormFile? file,
         CancellationToken cancellationToken = default)
     {
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
@@ -136,21 +187,47 @@ public class FilesController : ControllerBase
         if (dataset.AccessMode == DatasetAccessMode.ReadOnly)
             return StatusCode(403, new { message = "Cannot upload to a Read-Only dataset." });
 
-        var basePath = targetPath ?? string.Empty;
+        var effectivePath = !string.IsNullOrEmpty(targetPath) ? targetPath : (directory ?? string.Empty);
 
-        foreach (var file in files)
+        var fileList = new List<IFormFile>();
+        if (files != null && files.Count > 0)
         {
-            if (file.Length == 0) continue;
-
-            var relativePath = string.IsNullOrEmpty(basePath)
-                ? file.FileName
-                : $"{basePath}/{file.FileName}";
-
-            await using var stream = file.OpenReadStream();
-            await _storageService.WriteFileAsync(dataset, relativePath, stream, overwrite: true, cancellationToken);
+            fileList.AddRange(files);
+        }
+        if (file != null && !fileList.Contains(file))
+        {
+            fileList.Add(file);
+        }
+        if (fileList.Count == 0 && Request.HasFormContentType && Request.Form.Files.Count > 0)
+        {
+            fileList.AddRange(Request.Form.Files);
         }
 
-        return Ok(new { message = $"{files.Count} files uploaded successfully." });
+        if (fileList.Count == 0)
+        {
+            return BadRequest(new { message = "Nenhum arquivo enviado para upload." });
+        }
+
+        var uploadedCount = 0;
+        foreach (var item in fileList)
+        {
+            if (item.Length == 0) continue;
+
+            var relativePath = string.IsNullOrEmpty(effectivePath)
+                ? item.FileName
+                : $"{effectivePath}/{item.FileName}";
+
+            await using var stream = item.OpenReadStream();
+            await _storageService.WriteFileAsync(dataset, relativePath, stream, overwrite: true, cancellationToken);
+            uploadedCount++;
+        }
+
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, effectivePath, cancellationToken);
+        }
+
+        return Ok(new { message = $"{uploadedCount} files uploaded successfully.", count = uploadedCount });
     }
 
     [HttpPost("create-folder")]

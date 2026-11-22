@@ -17,6 +17,32 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync(cancellationToken);
 
+        // Ensure FolderStatsCaches table exists in case the SQLite DB was already created previously
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE IF NOT EXISTS FolderStatsCaches (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    DatasetId INTEGER NOT NULL,
+    RelativePath TEXT NOT NULL,
+    SnapshotName TEXT NOT NULL DEFAULT '',
+    TotalBytes INTEGER NOT NULL,
+    FilesCount INTEGER NOT NULL,
+    DirectoriesCount INTEGER NOT NULL,
+    TotalSubitemsCount INTEGER NOT NULL,
+    LastModifiedAtUtc TEXT NOT NULL,
+    CalculatedAtUtc TEXT NOT NULL,
+    IsStale INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS IX_FolderStatsCaches_DatasetId_SnapshotName_RelativePath 
+ON FolderStatsCaches (DatasetId, SnapshotName, RelativePath);
+", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to ensure FolderStatsCaches table exists.");
+        }
+
         // Seed initial default user: admin / admin if no users exist
         if (!await context.Users.AnyAsync(cancellationToken))
         {

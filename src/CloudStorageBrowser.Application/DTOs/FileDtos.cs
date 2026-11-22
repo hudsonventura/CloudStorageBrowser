@@ -15,6 +15,24 @@ public class FileItemDto
     public bool IsReadOnly { get; set; }
     public bool HasShadowCopy { get; set; }
     public bool HasThumbnail { get; set; }
+    public int? SubitemsCount { get; set; }
+    public int? FilesCount { get; set; }
+    public int? DirectoriesCount { get; set; }
+    public bool IsCalculatingStats { get; set; }
+}
+
+public class FolderStatsDto
+{
+    public int DatasetId { get; set; }
+    public string RelativePath { get; set; } = string.Empty;
+    public string? SnapshotName { get; set; }
+    public long TotalBytes { get; set; }
+    public int FilesCount { get; set; }
+    public int DirectoriesCount { get; set; }
+    public int TotalSubitemsCount { get; set; }
+    public DateTime? CalculatedAtUtc { get; set; }
+    public bool IsCalculating { get; set; }
+    public bool IsStale { get; set; }
 }
 
 public class DirectoryListingDto
@@ -29,6 +47,7 @@ public class DirectoryListingDto
     public int PageSize { get; set; }
     public int TotalItems { get; set; }
     public int TotalPages { get; set; }
+    public FolderStatsDto? CurrentFolderStats { get; set; }
 }
 
 public class CreateFolderDto

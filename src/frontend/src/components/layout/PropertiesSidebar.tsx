@@ -611,11 +611,50 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
                     </p>
                   </div>
 
-                  {item.type === 'File' && (
+                  {item.type === 'File' ? (
                     <div>
                       <span className="text-slate-400 dark:text-zinc-500">{t('properties.size')}:</span>
                       <p className="font-medium text-slate-800 dark:text-zinc-100 mt-0.5">{formatBytes(item.size)}</p>
                     </div>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-slate-400 dark:text-zinc-500">{t('properties.size')}:</span>
+                        <p className="font-medium text-slate-800 dark:text-zinc-100 mt-0.5">
+                          {item.isCalculatingStats ? (
+                            <span className="text-amber-500/80 dark:text-amber-400/80 text-xs animate-pulse">
+                              {t('common.calculating')}
+                            </span>
+                          ) : (
+                            formatBytes(item.size)
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-400 dark:text-zinc-500">{t('properties.subitems')}:</span>
+                        <p className="font-medium text-slate-800 dark:text-zinc-100 mt-0.5">
+                          {item.isCalculatingStats ? (
+                            <span className="text-amber-500/80 dark:text-amber-400/80 text-xs animate-pulse">
+                              {t('common.calculating')}
+                            </span>
+                          ) : item.subitemsCount !== undefined && item.subitemsCount !== null ? (
+                            <span>
+                              {item.subitemsCount === 1
+                                ? `1 ${t('common.item')}`
+                                : `${item.subitemsCount} ${t('common.items')}`}
+                              {item.filesCount !== undefined && item.directoriesCount !== undefined && (
+                                <span className="text-slate-400 dark:text-zinc-500 font-normal text-[11px] block mt-0.5">
+                                  ({item.filesCount} {t('properties.filesCount').toLowerCase()}, {item.directoriesCount} {t('properties.directoriesCount').toLowerCase()})
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            '--'
+                          )}
+                        </p>
+                      </div>
+                    </>
                   )}
 
                   <div>
@@ -712,6 +751,30 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
                           <span>Arquivos:</span>
                           <span className="font-semibold">{listing.items.filter(i => i.type === 'File').length}</span>
                         </div>
+                        {listing.currentFolderStats && (
+                          <>
+                            <div className="flex justify-between pt-1 border-t border-slate-200/60 dark:border-zinc-800 text-[11px]">
+                              <span>Tamanho do Diretório:</span>
+                              <span className="font-semibold text-slate-900 dark:text-zinc-100">
+                                {listing.currentFolderStats.isCalculating ? (
+                                  <span className="text-amber-500/80 animate-pulse">{t('common.calculating')}</span>
+                                ) : (
+                                  formatBytes(listing.currentFolderStats.totalBytes)
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-[11px]">
+                              <span>Total Subitens (Recursivo):</span>
+                              <span className="font-semibold text-slate-900 dark:text-zinc-100">
+                                {listing.currentFolderStats.isCalculating ? (
+                                  <span className="text-amber-500/80 animate-pulse">{t('common.calculating')}</span>
+                                ) : (
+                                  `${listing.currentFolderStats.totalSubitemsCount} (${listing.currentFolderStats.filesCount} arq, ${listing.currentFolderStats.directoriesCount} dir)`
+                                )}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

@@ -15,4 +15,8 @@ public class StorageItem
     public FileCategory Category { get; set; }
     public bool IsReadOnly { get; set; }
     public bool HasShadowCopy { get; set; }
+    public int? SubitemsCount { get; set; }
+    public int? FilesCount { get; set; }
+    public int? DirectoriesCount { get; set; }
+    public bool IsCalculatingStats { get; set; }
 }

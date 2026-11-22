@@ -50,6 +50,12 @@ public static class DependencyInjection
         services.AddScoped<IStorageService, PhysicalStorageService>();
         services.AddScoped<IDatasetManager, DatasetManager>();
 
+        // Folder Stats & Background Queue
+        services.AddSingleton<FolderStatsChannel>();
+        services.AddSingleton<FolderStatsService>();
+        services.AddSingleton<IFolderStatsService>(provider => provider.GetRequiredService<FolderStatsService>());
+        services.AddHostedService<FolderStatsBackgroundWorker>();
+
         // Media & Metadata
         services.AddScoped<IThumbnailService, ThumbnailService>();
         services.AddScoped<IMetadataExtractorService, MetadataExtractorService>();

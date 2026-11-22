@@ -13,10 +13,19 @@ public class AppDbContext : DbContext, IAppDbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<DatasetConfig> Datasets => Set<DatasetConfig>();
     public DbSet<AppSetting> Settings => Set<AppSetting>();
+    public DbSet<FolderStatsCache> FolderStatsCaches => Set<FolderStatsCache>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<FolderStatsCache>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.DatasetId, e.SnapshotName, e.RelativePath }).IsUnique();
+            entity.Property(e => e.RelativePath).IsRequired();
+            entity.Property(e => e.SnapshotName).IsRequired().HasDefaultValue(string.Empty);
+        });
 
         modelBuilder.Entity<User>(entity =>
         {

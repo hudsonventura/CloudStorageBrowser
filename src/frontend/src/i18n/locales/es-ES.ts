@@ -15,7 +15,10 @@ export const esES: TranslationDictionary = {
     readOnly: 'Solo Lectura',
     readWrite: 'Lectura y Escritura',
     copied: '¡Copiado!',
-    copy: 'Copiar'
+    copy: 'Copiar',
+    calculating: 'Calculando...',
+    item: 'elemento',
+    items: 'elementos'
   },
   login: {
     title: 'CloudStorageBrowser',
@@ -102,6 +105,9 @@ export const esES: TranslationDictionary = {
     permission: 'Permiso',
     folder: 'Carpeta',
     file: 'Archivo',
+    subitems: 'Subelementos',
+    filesCount: 'Archivos',
+    directoriesCount: 'Subcarpetas',
     exifTitle: 'Información EXIF / Medios',
     dimensions: 'Dimensiones',
     duration: 'Duración',

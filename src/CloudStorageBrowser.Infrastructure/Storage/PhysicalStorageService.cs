@@ -11,13 +11,16 @@ public class PhysicalStorageService : IStorageService
 {
     private readonly ISnapshotService _snapshotService;
     private readonly ILogger<PhysicalStorageService> _logger;
+    private readonly IFolderStatsService? _folderStatsService;
 
     public PhysicalStorageService(
         ISnapshotService snapshotService,
-        ILogger<PhysicalStorageService> logger)
+        ILogger<PhysicalStorageService> logger,
+        IFolderStatsService? folderStatsService = null)
     {
         _snapshotService = snapshotService;
         _logger = logger;
+        _folderStatsService = folderStatsService;
     }
 
     public async Task<PagedResult<StorageItem>> ListDirectoryAsync(
@@ -68,13 +71,38 @@ public class PhysicalStorageService : IStorageService
                 ? subDir.Name
                 : $"{cleanRelPath}/{subDir.Name}";
 
+            long dirSize = 0;
+            int? subitemsCount = null;
+            int? filesCount = null;
+            int? dirsCount = null;
+            bool isCalculating = false;
+
+            if (_folderStatsService != null)
+            {
+                var stats = await _folderStatsService.GetFolderStatsAsync(
+                    dataset.Id, itemRelPath, snapshotName, queueIfMissing: true, cancellationToken);
+
+                if (stats != null)
+                {
+                    dirSize = stats.TotalBytes;
+                    subitemsCount = stats.TotalSubitemsCount;
+                    filesCount = stats.FilesCount;
+                    dirsCount = stats.DirectoriesCount;
+                    isCalculating = stats.IsCalculating;
+                }
+            }
+
             items.Add(new StorageItem
             {
                 Name = subDir.Name,
                 RelativePath = itemRelPath,
                 FullPath = subDir.FullName,
                 Type = ItemType.Directory,
-                Size = 0,
+                Size = dirSize,
+                SubitemsCount = subitemsCount,
+                FilesCount = filesCount,
+                DirectoriesCount = dirsCount,
+                IsCalculatingStats = isCalculating,
                 CreatedAtUtc = subDir.CreationTimeUtc,
                 LastModifiedAtUtc = subDir.LastWriteTimeUtc,
                 Extension = string.Empty,
@@ -197,13 +225,39 @@ public class PhysicalStorageService : IStorageService
         if (Directory.Exists(fullPath))
         {
             var dir = new DirectoryInfo(fullPath);
+
+            long dirSize = 0;
+            int? subitemsCount = null;
+            int? filesCount = null;
+            int? dirsCount = null;
+            bool isCalculating = false;
+
+            if (_folderStatsService != null)
+            {
+                var stats = await _folderStatsService.GetFolderStatsAsync(
+                    dataset.Id, cleanRelPath, snapshotName, queueIfMissing: true, cancellationToken);
+
+                if (stats != null)
+                {
+                    dirSize = stats.TotalBytes;
+                    subitemsCount = stats.TotalSubitemsCount;
+                    filesCount = stats.FilesCount;
+                    dirsCount = stats.DirectoriesCount;
+                    isCalculating = stats.IsCalculating;
+                }
+            }
+
             return new StorageItem
             {
                 Name = dir.Name,
                 RelativePath = cleanRelPath,
                 FullPath = dir.FullName,
                 Type = ItemType.Directory,
-                Size = 0,
+                Size = dirSize,
+                SubitemsCount = subitemsCount,
+                FilesCount = filesCount,
+                DirectoriesCount = dirsCount,
+                IsCalculatingStats = isCalculating,
                 CreatedAtUtc = dir.CreationTimeUtc,
                 LastModifiedAtUtc = dir.LastWriteTimeUtc,
                 Extension = string.Empty,
@@ -264,9 +318,14 @@ public class PhysicalStorageService : IStorageService
 
         await using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None);
         await contentStream.CopyToAsync(fileStream, cancellationToken);
+
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanRelPath, cancellationToken);
+        }
     }
 
-    public Task CreateDirectoryAsync(
+    public async Task CreateDirectoryAsync(
         DatasetConfig dataset,
         string relativePath,
         CancellationToken cancellationToken = default)
@@ -278,14 +337,18 @@ public class PhysicalStorageService : IStorageService
 
         if (Directory.Exists(fullPath))
         {
-            return Task.CompletedTask;
+            return;
         }
 
         Directory.CreateDirectory(fullPath);
-        return Task.CompletedTask;
+
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanRelPath, cancellationToken);
+        }
     }
 
-    public Task DeleteItemAsync(
+    public async Task DeleteItemAsync(
         DatasetConfig dataset,
         string relativePath,
         CancellationToken cancellationToken = default)
@@ -304,10 +367,13 @@ public class PhysicalStorageService : IStorageService
             Directory.Delete(fullPath, recursive: true);
         }
 
-        return Task.CompletedTask;
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanRelPath, cancellationToken);
+        }
     }
 
-    public Task RenameItemAsync(
+    public async Task RenameItemAsync(
         DatasetConfig dataset,
         string sourceRelativePath,
         string newName,
@@ -337,7 +403,12 @@ public class PhysicalStorageService : IStorageService
             throw new FileNotFoundException($"Item '{cleanSourceRel}' was not found.");
         }
 
-        return Task.CompletedTask;
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanSourceRel, cancellationToken);
+            var cleanTargetRel = Path.GetRelativePath(dataset.Path, targetFullPath).Replace('\\', '/');
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanTargetRel, cancellationToken);
+        }
     }
 
     public Task MoveItemAsync(
@@ -349,7 +420,7 @@ public class PhysicalStorageService : IStorageService
         return MoveItemAsync(dataset, sourceRelativePath, dataset, targetRelativePath, cancellationToken);
     }
 
-    public Task MoveItemAsync(
+    public async Task MoveItemAsync(
         DatasetConfig sourceDataset,
         string sourceRelativePath,
         DatasetConfig targetDataset,
@@ -400,7 +471,11 @@ public class PhysicalStorageService : IStorageService
             throw new FileNotFoundException($"Source '{cleanSource}' not found.");
         }
 
-        return Task.CompletedTask;
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(sourceDataset.Id, cleanSource, cancellationToken);
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(targetDataset.Id, cleanTarget, cancellationToken);
+        }
     }
 
     public Task CopyItemAsync(
@@ -446,7 +521,10 @@ public class PhysicalStorageService : IStorageService
             throw new FileNotFoundException($"Source '{cleanSource}' not found.");
         }
 
-        await Task.CompletedTask;
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(targetDataset.Id, cleanTarget, cancellationToken);
+        }
     }
 
     public async Task<string> ReadTextContentAsync(
@@ -479,6 +557,11 @@ public class PhysicalStorageService : IStorageService
         var fullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanRelPath);
 
         await File.WriteAllTextAsync(fullPath, content, cancellationToken);
+
+        if (_folderStatsService != null)
+        {
+            await _folderStatsService.InvalidateAndRecalculateAncestorsAsync(dataset.Id, cleanRelPath, cancellationToken);
+        }
     }
 
     public Task<DiskUsageInfo> GetDiskUsageAsync(DatasetConfig dataset, CancellationToken cancellationToken = default)

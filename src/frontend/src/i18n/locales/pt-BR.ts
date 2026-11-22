@@ -15,7 +15,10 @@ export const ptBR: TranslationDictionary = {
     readOnly: 'Somente Leitura',
     readWrite: 'Leitura e Escrita',
     copied: 'Copiado!',
-    copy: 'Copiar'
+    copy: 'Copiar',
+    calculating: 'Calculando...',
+    item: 'item',
+    items: 'itens'
   },
   login: {
     title: 'CloudStorageBrowser',
@@ -102,6 +105,9 @@ export const ptBR: TranslationDictionary = {
     permission: 'Permissão',
     folder: 'Pasta',
     file: 'Arquivo',
+    subitems: 'Subitens',
+    filesCount: 'Arquivos',
+    directoriesCount: 'Subpastas',
     exifTitle: 'Informações EXIF / Mídia',
     dimensions: 'Dimensões',
     duration: 'Duração',

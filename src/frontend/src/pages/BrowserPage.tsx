@@ -109,24 +109,24 @@ export const BrowserPage: React.FC = () => {
     const uploadedFiles = e.target.files;
     if (!uploadedFiles || uploadedFiles.length === 0 || !selectedDataset) return;
 
-    for (let i = 0; i < uploadedFiles.length; i++) {
-      const file = uploadedFiles[i];
-      const formData = new FormData();
-      formData.append('datasetId', selectedDataset.id.toString());
-      formData.append('directory', currentPath);
-      formData.append('file', file);
+    const formData = new FormData();
+    formData.append('datasetId', selectedDataset.id.toString());
+    formData.append('targetPath', currentPath);
+    formData.append('directory', currentPath);
 
-      try {
-        await apiClient.post('/files/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      } catch (err) {
-        console.error('Upload failed for file:', file.name, err);
-      }
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      formData.append('files', uploadedFiles[i]);
     }
 
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    refreshListing();
+    try {
+      await apiClient.post('/files/upload', formData);
+      refreshListing();
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      alert(err?.response?.data?.message || 'Falha ao enviar arquivos.');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   // Global keyboard shortcuts and Escape hierarchy:

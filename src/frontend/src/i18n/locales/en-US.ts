@@ -15,7 +15,10 @@ export const enUS: TranslationDictionary = {
     readOnly: 'Read Only',
     readWrite: 'Read & Write',
     copied: 'Copied!',
-    copy: 'Copy'
+    copy: 'Copy',
+    calculating: 'Calculating...',
+    item: 'item',
+    items: 'items'
   },
   login: {
     title: 'CloudStorageBrowser',
@@ -102,6 +105,9 @@ export const enUS: TranslationDictionary = {
     permission: 'Permission',
     folder: 'Folder',
     file: 'File',
+    subitems: 'Subitems',
+    filesCount: 'Files',
+    directoriesCount: 'Subfolders',
     exifTitle: 'EXIF / Media Metadata',
     dimensions: 'Dimensions',
     duration: 'Duration',

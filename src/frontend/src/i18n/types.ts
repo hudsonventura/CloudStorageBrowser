@@ -16,6 +16,9 @@ export interface TranslationDictionary {
     readWrite: string;
     copied: string;
     copy: string;
+    calculating: string;
+    item: string;
+    items: string;
   };
   login: {
     title: string;
@@ -102,6 +105,9 @@ export interface TranslationDictionary {
     permission: string;
     folder: string;
     file: string;
+    subitems: string;
+    filesCount: string;
+    directoriesCount: string;
     exifTitle: string;
     dimensions: string;
     duration: string;

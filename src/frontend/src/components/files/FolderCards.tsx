@@ -14,6 +14,14 @@ export const FolderCards: React.FC<FolderCardsProps> = ({ folders, onContextMenu
   const { navigateTo, selectedItem, setSelectedItem, setIsPropertiesOpen } = useDataset();
   const { t } = useI18n();
 
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   if (folders.length === 0) return null;
 
   return (
@@ -63,10 +71,27 @@ export const FolderCards: React.FC<FolderCardsProps> = ({ folders, onContextMenu
                 <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-zinc-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform border border-transparent dark:border-zinc-700">
                   <Folder className="w-5 h-5 fill-blue-500/30" />
                 </div>
-                <div className="truncate">
+                <div className="truncate min-w-0 flex-1">
                   <span className="text-sm font-semibold text-slate-800 dark:text-zinc-100 truncate block">
                     {folder.name}
                   </span>
+                  <div className="text-[11px] text-slate-400 dark:text-zinc-500 font-medium flex items-center space-x-1.5 truncate mt-0.5">
+                    {folder.isCalculatingStats ? (
+                      <span className="text-amber-500/80 dark:text-amber-400/80 text-[10px] animate-pulse">
+                        {t('common.calculating')}
+                      </span>
+                    ) : folder.subitemsCount !== undefined && folder.subitemsCount !== null ? (
+                      <span>
+                        {folder.subitemsCount === 1
+                          ? `1 ${t('common.item')}`
+                          : `${folder.subitemsCount} ${t('common.items')}`}
+                        {' • '}
+                        {formatBytes(folder.size)}
+                      </span>
+                    ) : (
+                      <span>--</span>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -183,6 +183,81 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchListing();
   }, [fetchListing]);
 
+  // Background polling for folders that are calculating stats
+  useEffect(() => {
+    if (!selectedDataset || !listing) return;
+
+    const calculatingFolders = listing.items.filter(
+      item => item.type === 'Directory' && item.isCalculatingStats
+    );
+    if (calculatingFolders.length === 0) return;
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      try {
+        const paths = calculatingFolders.map(f => f.relativePath);
+        const params = new URLSearchParams();
+        params.append('datasetId', selectedDataset.id.toString());
+        if (snapshotName) params.append('snapshotName', snapshotName);
+        paths.forEach(p => params.append('paths', p));
+
+        const res = await apiClient.get<Record<string, any>>(`/files/folder-stats-batch?${params.toString()}`);
+        if (!isMounted) return;
+
+        const updatedStats = res.data;
+        let hasAnyUpdate = false;
+
+        setListing(prev => {
+          if (!prev) return prev;
+          const nextItems = prev.items.map(item => {
+            if (item.type === 'Directory' && updatedStats[item.relativePath]) {
+              const stat = updatedStats[item.relativePath];
+              if (!stat.isCalculating && (item.isCalculatingStats || item.size !== stat.totalBytes)) {
+                hasAnyUpdate = true;
+                return {
+                  ...item,
+                  size: stat.totalBytes,
+                  subitemsCount: stat.totalSubitemsCount,
+                  filesCount: stat.filesCount,
+                  directoriesCount: stat.directoriesCount,
+                  isCalculatingStats: false
+                };
+              }
+            }
+            return item;
+          });
+
+          return hasAnyUpdate ? { ...prev, items: nextItems } : prev;
+        });
+
+        // Also update selectedItem if it was one of the calculating folders
+        setSelectedItem(prev => {
+          if (prev && prev.type === 'Directory' && updatedStats[prev.relativePath]) {
+            const stat = updatedStats[prev.relativePath];
+            if (!stat.isCalculating && prev.isCalculatingStats) {
+              return {
+                ...prev,
+                size: stat.totalBytes,
+                subitemsCount: stat.totalSubitemsCount,
+                filesCount: stat.filesCount,
+                directoriesCount: stat.directoriesCount,
+                isCalculatingStats: false
+              };
+            }
+          }
+          return prev;
+        });
+      } catch {
+        // Silent catch for background stats poll
+      }
+    }, 2500);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedDataset, listing, snapshotName]);
+
   const refreshListing = () => {
     fetchListing();
   };
