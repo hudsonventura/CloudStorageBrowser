@@ -84,9 +84,20 @@ export interface SnapshotVersion {
 }
 
 export interface MediaMetadata {
+  format?: string;
+  duration?: string;
+  overallBitrate?: number;
+
+  // Image Specifics
   width?: number;
   height?: number;
-  duration?: string;
+  aspectRatio?: string;
+  colorType?: string;
+  bitsPerPixel?: number;
+  colorCount?: number;
+  colorSpace?: string;
+
+  // Exif / Camera Specifics (Images)
   cameraMake?: string;
   cameraModel?: string;
   lens?: string;
@@ -98,4 +109,19 @@ export interface MediaMetadata {
   latitude?: number;
   longitude?: number;
   altitude?: number;
+
+  // Audio Specifics
+  audioCodec?: string;
+  audioBitrate?: number;
+  audioSampleRate?: number;
+  audioChannels?: number;
+  audioChannelLayout?: string;
+  audioBitrateMode?: string; // "CBR" | "VBR"
+
+  // Video Specifics
+  videoCodec?: string;
+  videoProfile?: string;
+  videoBitrate?: number;
+  frameRate?: number;
+  pixelFormat?: string;
 }

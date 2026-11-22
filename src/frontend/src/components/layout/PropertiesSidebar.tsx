@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Folder, Camera, MapPin, Aperture, Clock, Eye, Info, HardDrive, ShieldCheck } from 'lucide-react';
+import {
+  X,
+  FileText,
+  Folder,
+  Camera,
+  MapPin,
+  Aperture,
+  Clock,
+  Eye,
+  Info,
+  HardDrive,
+  ShieldCheck,
+  Film,
+  Music,
+  Play,
+  Layers,
+  Palette,
+  Radio,
+  Activity,
+  Maximize2,
+  Volume2
+} from 'lucide-react';
 import { FileItem, MediaMetadata } from '../../types';
 import { apiClient } from '../../api/client';
 import { useDataset } from '../../context/DatasetContext';
@@ -19,7 +40,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
   const [metadata, setMetadata] = useState<MediaMetadata | null>(null);
 
   useEffect(() => {
-    if (item && item.category === 'Image') {
+    if (item && (item.category === 'Image' || item.category === 'Video' || item.category === 'Audio')) {
       apiClient.get<MediaMetadata>('/metadata', {
         params: {
           datasetId: selectedDataset?.id,
@@ -32,7 +53,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
     } else {
       setMetadata(null);
     }
-  }, [item?.relativePath, selectedDataset?.id, snapshotName]);
+  }, [item?.relativePath, item?.category, selectedDataset?.id, snapshotName]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -49,6 +70,34 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
     } catch {
       return dateStr;
     }
+  };
+
+  const formatBitrate = (bps?: number) => {
+    if (!bps || bps <= 0) return null;
+    if (bps >= 1_000_000) {
+      return (bps / 1_000_000).toFixed(1) + ' Mbps';
+    }
+    return Math.round(bps / 1_000) + ' kbps';
+  };
+
+  const formatDuration = (dur?: string) => {
+    if (!dur) return null;
+    const parts = dur.split(':');
+    if (parts.length === 3) {
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      const seconds = Math.floor(parseFloat(parts[2]));
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return dur;
+  };
+
+  const formatSampleRate = (sr?: number) => {
+    if (!sr || sr <= 0) return null;
+    return `${(sr / 1000).toFixed(1)} kHz`;
   };
 
   const getRawUrl = (file: FileItem) => {
@@ -148,7 +197,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
         {activeTab === 'details' ? (
           item ? (
             <>
-              {/* Image Preview Box */}
+              {/* Media Preview Box (Image, Video, Audio) */}
               {item.category === 'Image' && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/80 p-2.5 text-center">
                   <img
@@ -170,24 +219,119 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
                       className="mt-2.5 w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Abrir Visualizador</span>
+                      <span>{t('properties.openFile')}</span>
                     </button>
                   )}
                 </div>
               )}
 
-              {/* Media Info Cards */}
-              {metadata && (metadata.cameraModel || metadata.fNumber || metadata.isoSpeed) && (
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
-                    Informações de Mídia
+              {item.category === 'Video' && (
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/80 p-3 text-center">
+                  <div className="w-full h-28 rounded-xl bg-gradient-to-br from-slate-900 via-zinc-900 to-indigo-950 flex flex-col items-center justify-center text-slate-300 relative border border-slate-800/80 shadow-inner">
+                    <Film className="w-9 h-9 text-indigo-400 mb-1" />
+                    <span className="text-[11px] font-mono font-semibold text-slate-300">
+                      {metadata?.duration ? formatDuration(metadata.duration) : item.name}
+                    </span>
+                  </div>
+                  {onOpenFile && (
+                    <button
+                      onClick={() => onOpenFile(item)}
+                      className="mt-2.5 w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>{t('properties.openFile')}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {item.category === 'Audio' && (
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/80 p-3 text-center">
+                  <div className="w-full h-28 rounded-xl bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 flex flex-col items-center justify-center text-slate-300 relative border border-purple-900/40 shadow-inner">
+                    <Music className="w-9 h-9 text-purple-400 mb-1" />
+                    <span className="text-[11px] font-mono font-semibold text-purple-200">
+                      {metadata?.duration ? formatDuration(metadata.duration) : item.name}
+                    </span>
+                  </div>
+                  {onOpenFile && (
+                    <button
+                      onClick={() => onOpenFile(item)}
+                      className="mt-2.5 w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>{t('properties.openFile')}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* IMAGE METADATA */}
+              {item.category === 'Image' && metadata && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                    {t('properties.imageInfo')}
                   </h4>
                   <div className="grid grid-cols-2 gap-2 text-xs">
+                    {metadata.width && metadata.height && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Maximize2 className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.dimensions')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.width} × {metadata.height}
+                        </p>
+                        {metadata.aspectRatio && (
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                            {metadata.aspectRatio}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {metadata.format && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Layers className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.format')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.format}
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.colorCount && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Palette className="w-3 h-3 shrink-0 text-amber-500" />
+                          <span>{t('properties.colorCount')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.colorCount >= 1000000
+                            ? `${(metadata.colorCount / 1000000).toFixed(1)}M`
+                            : metadata.colorCount.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+
+                    {(metadata.colorType || metadata.bitsPerPixel) && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Palette className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.colorType')}</span>
+                        </div>
+                        <p className="font-semibold text-slate-800 dark:text-zinc-100 mt-0.5 text-[11px] truncate" title={metadata.colorType || ''}>
+                          {metadata.colorType || `${metadata.bitsPerPixel}-bit`}
+                        </p>
+                      </div>
+                    )}
+
                     {metadata.fNumber && (
                       <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
-                        <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">
+                        <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
                           <Aperture className="w-3 h-3" />
-                          <span>Abertura</span>
+                          <span>{t('properties.aperture')}</span>
                         </div>
                         <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5">{metadata.fNumber}</p>
                       </div>
@@ -195,9 +339,9 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
 
                     {metadata.exposureTime && (
                       <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
-                        <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">
+                        <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
                           <Clock className="w-3 h-3" />
-                          <span>Exposição</span>
+                          <span>{t('properties.exposure')}</span>
                         </div>
                         <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5">{metadata.exposureTime}s</p>
                       </div>
@@ -205,40 +349,245 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
 
                     {metadata.isoSpeed && (
                       <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
-                        <div className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">ISO</div>
+                        <div className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">{t('properties.iso')}</div>
                         <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5">{metadata.isoSpeed}</p>
-                      </div>
-                    )}
-
-                    {metadata.width && metadata.height && (
-                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
-                        <div className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">Dimensões</div>
-                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5">{metadata.width} × {metadata.height}</p>
                       </div>
                     )}
                   </div>
 
                   {metadata.cameraModel && (
-                    <div className="mt-2 bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 text-xs">
+                    <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 text-xs">
                       <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">
                         <Camera className="w-3 h-3" />
-                        <span>Câmera</span>
+                        <span>{t('properties.camera')}</span>
                       </div>
                       <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5">
                         {metadata.cameraMake} {metadata.cameraModel}
                       </p>
+                      {metadata.lens && (
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">{metadata.lens}</p>
+                      )}
                     </div>
                   )}
 
                   {metadata.latitude && metadata.longitude && (
-                    <div className="mt-2 bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 text-xs">
+                    <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 text-xs">
                       <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">
                         <MapPin className="w-3 h-3 text-red-500" />
-                        <span>Localização GPS</span>
+                        <span>{t('properties.gps')}</span>
                       </div>
                       <p className="font-semibold text-slate-700 dark:text-zinc-300 mt-0.5">
                         {metadata.latitude.toFixed(5)}, {metadata.longitude.toFixed(5)}
                       </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* AUDIO METADATA */}
+              {item.category === 'Audio' && metadata && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                    {t('properties.audioInfo')}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {(metadata.audioCodec || metadata.format) && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Music className="w-3 h-3 shrink-0 text-purple-500" />
+                          <span>{t('properties.audioCodec')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 text-[11px] truncate" title={metadata.audioCodec || ''}>
+                          {metadata.audioCodec || metadata.format}
+                        </p>
+                      </div>
+                    )}
+
+                    {(metadata.audioBitrate || metadata.overallBitrate) && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Activity className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.bitrate')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {formatBitrate(metadata.audioBitrate || metadata.overallBitrate)}
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.audioBitrateMode && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Radio className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.bitrateMode')}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            metadata.audioBitrateMode === 'VBR'
+                              ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800'
+                              : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                          }`}>
+                            {metadata.audioBitrateMode === 'VBR' ? t('properties.vbr') : t('properties.cbr')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {metadata.audioSampleRate && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Activity className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.sampleRate')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {formatSampleRate(metadata.audioSampleRate)}
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.audioChannels && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 col-span-2">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Volume2 className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.channels')}</span>
+                        </div>
+                        <p className="font-semibold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.audioChannels === 1
+                            ? t('properties.audioChannelsMono')
+                            : metadata.audioChannels === 2
+                              ? t('properties.audioChannelsStereo')
+                              : t('properties.audioChannelsSurround', { count: metadata.audioChannels })}
+                          {metadata.audioChannelLayout ? ` (${metadata.audioChannelLayout})` : ''}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* VIDEO METADATA */}
+              {item.category === 'Video' && metadata && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                    {t('properties.videoInfo')}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {metadata.width && metadata.height && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Maximize2 className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.dimensions')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.width} × {metadata.height}
+                        </p>
+                        {metadata.aspectRatio && (
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                            {metadata.aspectRatio}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {metadata.videoCodec && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Film className="w-3 h-3 shrink-0 text-indigo-500" />
+                          <span>{t('properties.videoCodec')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 text-[11px] truncate" title={metadata.videoCodec}>
+                          {metadata.videoCodec}
+                        </p>
+                        {metadata.videoProfile && (
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 truncate block">
+                            {metadata.videoProfile}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {(metadata.videoBitrate || metadata.overallBitrate) && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Activity className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.bitrate')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {formatBitrate(metadata.videoBitrate || metadata.overallBitrate)}
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.frameRate && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.frameRate')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 truncate">
+                          {metadata.frameRate} fps
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.pixelFormat && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Palette className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.pixelFormat')}</span>
+                        </div>
+                        <p className="font-mono text-slate-700 dark:text-zinc-300 mt-0.5 text-[11px] truncate">
+                          {metadata.pixelFormat}
+                        </p>
+                      </div>
+                    )}
+
+                    {metadata.duration && (
+                      <div className="bg-slate-50 dark:bg-zinc-900 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <div className="flex items-center space-x-1 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold truncate">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          <span>{t('properties.duration')}</span>
+                        </div>
+                        <p className="font-bold text-slate-800 dark:text-zinc-100 mt-0.5 font-mono truncate">
+                          {formatDuration(metadata.duration)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Video Integrated Audio Track */}
+                  {metadata.audioCodec && (
+                    <div className="bg-slate-50 dark:bg-zinc-900 p-3 rounded-2xl border border-slate-100 dark:border-zinc-800 text-xs space-y-2">
+                      <div className="flex items-center space-x-1.5 text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-semibold">
+                        <Volume2 className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>{t('properties.audioTrack')}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                        <div>
+                          <span className="text-slate-400 dark:text-zinc-500">{t('properties.audioCodec')}:</span>
+                          <p className="font-semibold text-slate-800 dark:text-zinc-200 truncate">{metadata.audioCodec}</p>
+                        </div>
+                        {metadata.audioBitrate && (
+                          <div>
+                            <span className="text-slate-400 dark:text-zinc-500">{t('properties.bitrate')}:</span>
+                            <p className="font-semibold text-slate-800 dark:text-zinc-200">{formatBitrate(metadata.audioBitrate)}</p>
+                          </div>
+                        )}
+                        {metadata.audioSampleRate && (
+                          <div>
+                            <span className="text-slate-400 dark:text-zinc-500">{t('properties.sampleRate')}:</span>
+                            <p className="font-semibold text-slate-800 dark:text-zinc-200">{formatSampleRate(metadata.audioSampleRate)}</p>
+                          </div>
+                        )}
+                        {metadata.audioChannels && (
+                          <div>
+                            <span className="text-slate-400 dark:text-zinc-500">{t('properties.channels')}:</span>
+                            <p className="font-semibold text-slate-800 dark:text-zinc-200">
+                              {metadata.audioChannels === 1 ? 'Mono' : metadata.audioChannels === 2 ? 'Estéreo' : `${metadata.audioChannels} canais`}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

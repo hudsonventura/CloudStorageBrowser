@@ -38,9 +38,18 @@ public class MetadataController : ControllerBase
 
         return Ok(new MediaMetadataDto
         {
+            Format = metadata.Format,
+            Duration = metadata.Duration,
+            OverallBitrate = metadata.OverallBitrate,
+
             Width = metadata.Width,
             Height = metadata.Height,
-            Duration = metadata.Duration,
+            AspectRatio = metadata.AspectRatio,
+            ColorType = metadata.ColorType,
+            BitsPerPixel = metadata.BitsPerPixel,
+            ColorCount = metadata.ColorCount,
+            ColorSpace = metadata.ColorSpace,
+
             CameraMake = metadata.CameraMake,
             CameraModel = metadata.CameraModel,
             Lens = metadata.Lens,
@@ -51,7 +60,20 @@ public class MetadataController : ControllerBase
             Software = metadata.Software,
             Latitude = metadata.Latitude,
             Longitude = metadata.Longitude,
-            Altitude = metadata.Altitude
+            Altitude = metadata.Altitude,
+
+            AudioCodec = metadata.AudioCodec,
+            AudioBitrate = metadata.AudioBitrate,
+            AudioSampleRate = metadata.AudioSampleRate,
+            AudioChannels = metadata.AudioChannels,
+            AudioChannelLayout = metadata.AudioChannelLayout,
+            AudioBitrateMode = metadata.AudioBitrateMode,
+
+            VideoCodec = metadata.VideoCodec,
+            VideoProfile = metadata.VideoProfile,
+            VideoBitrate = metadata.VideoBitrate,
+            FrameRate = metadata.FrameRate,
+            PixelFormat = metadata.PixelFormat
         });
     }
 }
