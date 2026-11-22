@@ -225,6 +225,15 @@ export const ptBR: TranslationDictionary = {
     retry: 'Tentar novamente',
     toggleFitZoom: 'Alternar 100% / Ajustar à tela (F)',
     fitMode: 'Ajustar',
-    zoom100Mode: '100%'
+    zoom100Mode: '100%',
+    words: 'palavras',
+    readTime: '{minutes} min de leitura',
+    livePreview: 'Ao Vivo',
+    source: 'Código',
+    reading: 'Leitura',
+    fullscreen: 'Tela cheia',
+    exitFullscreen: 'Sair da tela cheia',
+    unsavedChanges: 'Alterações não salvas',
+    allChangesSaved: 'Todas as alterações salvas'
   }
 };

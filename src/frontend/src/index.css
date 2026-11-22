@@ -7,3 +7,271 @@
     @apply antialiased;
   }
 }
+
+/* ========================================================
+   Obsidian-style Markdown Editor (In-place WYSIWYG)
+   ======================================================== */
+
+.tiptap.ProseMirror {
+  outline: none !important;
+  min-height: 500px;
+}
+
+.tiptap.ProseMirror p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.7;
+}
+
+.tiptap.ProseMirror h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .tiptap.ProseMirror h1 {
+  border-bottom-color: rgba(39, 39, 42, 0.8);
+  color: #f4f4f5;
+}
+
+.tiptap.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.dark .tiptap.ProseMirror h2 {
+  border-bottom-color: rgba(39, 39, 42, 0.6);
+  color: #f4f4f5;
+}
+
+.tiptap.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+
+.dark .tiptap.ProseMirror h3 {
+  color: #e4e4e7;
+}
+
+.tiptap.ProseMirror h4,
+.tiptap.ProseMirror h5,
+.tiptap.ProseMirror h6 {
+  font-weight: 600;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+}
+
+/* Inline Code */
+.tiptap.ProseMirror code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  background-color: rgba(241, 245, 249, 1);
+  color: #ec4899;
+  padding: 0.15em 0.4em;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .tiptap.ProseMirror code {
+  background-color: rgba(39, 39, 42, 0.8);
+  color: #f472b6;
+  border-color: rgba(63, 63, 70, 0.6);
+}
+
+/* Fenced Code Block */
+.tiptap.ProseMirror pre {
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  margin: 1em 0;
+  overflow-x: auto;
+  border: 1px solid rgba(226, 232, 240, 0.2);
+}
+
+.dark .tiptap.ProseMirror pre {
+  background-color: #09090b;
+  border-color: rgba(39, 39, 42, 0.9);
+}
+
+.tiptap.ProseMirror pre code {
+  background: none !important;
+  color: inherit !important;
+  padding: 0 !important;
+  border: none !important;
+  font-size: inherit;
+}
+
+/* Blockquote */
+.tiptap.ProseMirror blockquote {
+  border-left: 4px solid #3b82f6;
+  padding: 0.5rem 1rem;
+  margin: 1em 0;
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+  color: #475569;
+}
+
+.dark .tiptap.ProseMirror blockquote {
+  background-color: rgba(59, 130, 246, 0.08);
+  color: #cbd5e1;
+}
+
+/* Lists */
+.tiptap.ProseMirror ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5em 0;
+}
+
+.tiptap.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5em 0;
+}
+
+.tiptap.ProseMirror li {
+  margin: 0.25em 0;
+}
+
+/* Task Lists & Interactive Checkboxes */
+.tiptap.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5em 0;
+}
+
+.tiptap.ProseMirror li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.35em 0;
+  gap: 0.6rem;
+}
+
+.tiptap.ProseMirror li[data-type="taskItem"] > label {
+  user-select: none;
+  margin-top: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.tiptap.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"] {
+  cursor: pointer;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #2563eb;
+  border-radius: 0.25rem;
+}
+
+.tiptap.ProseMirror li[data-type="taskItem"] > div {
+  flex: 1 1 auto;
+}
+
+.tiptap.ProseMirror li[data-type="taskItem"][data-checked="true"] > div {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.dark .tiptap.ProseMirror li[data-type="taskItem"][data-checked="true"] > div {
+  color: #71717a;
+}
+
+/* Horizontal Rule */
+.tiptap.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 2em 0;
+}
+
+.dark .tiptap.ProseMirror hr {
+  border-top-color: #27272a;
+}
+
+/* Tables */
+.tiptap.ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.25em 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.dark .tiptap.ProseMirror table {
+  border-color: #27272a;
+}
+
+.tiptap.ProseMirror th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.dark .tiptap.ProseMirror th {
+  background-color: #1e1e24;
+  border-color: #27272a;
+  color: #f4f4f5;
+}
+
+.tiptap.ProseMirror td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .tiptap.ProseMirror td {
+  border-color: #27272a;
+}
+
+.tiptap.ProseMirror tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.dark .tiptap.ProseMirror tr:nth-child(even) {
+  background-color: #16161a;
+}
+
+/* Links */
+.tiptap.ProseMirror a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.dark .tiptap.ProseMirror a {
+  color: #60a5fa;
+}
+
+/* Placeholder */
+.tiptap.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94a3b8;
+  pointer-events: none;
+  height: 0;
+}
+
+.dark .tiptap.ProseMirror p.is-editor-empty:first-child::before {
+  color: #52525b;
+}

@@ -226,5 +226,14 @@ export interface TranslationDictionary {
     toggleFitZoom: string;
     fitMode: string;
     zoom100Mode: string;
+    words: string;
+    readTime: string;
+    livePreview: string;
+    source: string;
+    reading: string;
+    fullscreen: string;
+    exitFullscreen: string;
+    unsavedChanges: string;
+    allChangesSaved: string;
   };
 }

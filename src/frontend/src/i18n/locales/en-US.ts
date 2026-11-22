@@ -225,6 +225,15 @@ export const enUS: TranslationDictionary = {
     retry: 'Try again',
     toggleFitZoom: 'Toggle 100% / Fit (F)',
     fitMode: 'Fit',
-    zoom100Mode: '100%'
+    zoom100Mode: '100%',
+    words: 'words',
+    readTime: '{minutes} min read',
+    livePreview: 'Live',
+    source: 'Source',
+    reading: 'Reading',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
+    unsavedChanges: 'Unsaved changes',
+    allChangesSaved: 'All changes saved'
   }
 };

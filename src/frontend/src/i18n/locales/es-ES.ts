@@ -225,6 +225,15 @@ export const esES: TranslationDictionary = {
     retry: 'Intentar de nuevo',
     toggleFitZoom: 'Alternar 100% / Ajustar a la pantalla (F)',
     fitMode: 'Ajustar',
-    zoom100Mode: '100%'
+    zoom100Mode: '100%',
+    words: 'palabras',
+    readTime: '{minutes} min de lectura',
+    livePreview: 'En vivo',
+    source: 'Código',
+    reading: 'Lectura',
+    fullscreen: 'Pantalla completa',
+    exitFullscreen: 'Salir de pantalla completa',
+    unsavedChanges: 'Cambios no guardados',
+    allChangesSaved: 'Todos los cambios guardados'
   }
 };
