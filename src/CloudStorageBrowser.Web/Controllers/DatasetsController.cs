@@ -20,6 +20,7 @@ public class DatasetsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<DatasetDto>>> GetDatasets(CancellationToken cancellationToken)
     {
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
         var datasets = await _datasetManager.GetAllDatasetsAsync(cancellationToken);
         return Ok(datasets);
     }

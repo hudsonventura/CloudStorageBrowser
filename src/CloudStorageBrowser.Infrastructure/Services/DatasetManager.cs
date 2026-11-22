@@ -33,10 +33,14 @@ public class DatasetManager : IDatasetManager
 
     public async Task<IReadOnlyList<DatasetDto>> GetAllDatasetsAsync(CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Datasets
+        await RescanDatasetsAsync(cancellationToken);
+
+        var allEntities = await _context.Datasets
             .Where(d => d.IsVisible)
             .OrderBy(d => d.Name)
             .ToListAsync(cancellationToken);
+
+        var entities = allEntities.Where(d => Directory.Exists(d.Path)).ToList();
 
         var list = new List<DatasetDto>();
 
@@ -65,7 +69,12 @@ public class DatasetManager : IDatasetManager
 
     public async Task<DatasetConfig?> GetDatasetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _context.Datasets.FindAsync(new object[] { id }, cancellationToken);
+        var entity = await _context.Datasets.FindAsync(new object[] { id }, cancellationToken);
+        if (entity == null || !Directory.Exists(entity.Path))
+        {
+            return null;
+        }
+        return entity;
     }
 
     public async Task RescanDatasetsAsync(CancellationToken cancellationToken = default)
@@ -101,6 +110,18 @@ public class DatasetManager : IDatasetManager
         var subDirs = Directory.GetDirectories(baseDatasetsDir);
         var existingInDb = await _context.Datasets.ToListAsync(cancellationToken);
 
+        // 1. Remove datasets from DB that are no longer mapped or no longer exist on disk
+        var activeSubDirs = new HashSet<string>(subDirs, StringComparer.OrdinalIgnoreCase);
+        foreach (var existing in existingInDb)
+        {
+            if (!Directory.Exists(existing.Path) || !activeSubDirs.Contains(existing.Path))
+            {
+                _logger.LogInformation("Removing unmapped or missing dataset: {Name} at {Path}", existing.Name, existing.Path);
+                _context.Datasets.Remove(existing);
+            }
+        }
+
+        // 2. Register or update detected datasets
         foreach (var subDir in subDirs)
         {
             var dirName = Path.GetFileName(subDir);
@@ -124,10 +145,23 @@ public class DatasetManager : IDatasetManager
                     CreatedAtUtc = DateTime.UtcNow
                 });
             }
-            else if (isReadOnly && existing.AccessMode != DatasetAccessMode.ReadOnly)
+            else
             {
-                existing.AccessMode = DatasetAccessMode.ReadOnly;
-                existing.UpdatedAtUtc = DateTime.UtcNow;
+                if (existing.Path != subDir)
+                {
+                    existing.Path = subDir;
+                    existing.UpdatedAtUtc = DateTime.UtcNow;
+                }
+                if (isReadOnly && existing.AccessMode != DatasetAccessMode.ReadOnly)
+                {
+                    existing.AccessMode = DatasetAccessMode.ReadOnly;
+                    existing.UpdatedAtUtc = DateTime.UtcNow;
+                }
+                else if (!isReadOnly && existing.AccessMode == DatasetAccessMode.ReadOnly && !dirName.EndsWith(":ro", StringComparison.OrdinalIgnoreCase))
+                {
+                    existing.AccessMode = DatasetAccessMode.ReadWrite;
+                    existing.UpdatedAtUtc = DateTime.UtcNow;
+                }
             }
         }
 

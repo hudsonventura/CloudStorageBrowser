@@ -1,5 +1,5 @@
 import React from 'react';
-import { HardDrive, Folder, ShieldCheck, Database } from 'lucide-react';
+import { HardDrive, Folder, ShieldCheck, Database, RefreshCw } from 'lucide-react';
 import { useDataset } from '../../context/DatasetContext';
 
 export const SidebarLeft: React.FC = () => {
@@ -8,7 +8,8 @@ export const SidebarLeft: React.FC = () => {
     selectedDataset,
     selectDataset,
     currentPath,
-    navigateTo
+    navigateTo,
+    refreshDatasets
   } = useDataset();
 
   const formatBytes = (bytes: number) => {
@@ -28,6 +29,13 @@ export const SidebarLeft: React.FC = () => {
             <span className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
               Datasets
             </span>
+            <button
+              onClick={() => refreshDatasets()}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+              title="Atualizar lista de volumes mapeados"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <div className="space-y-1">

@@ -19,6 +19,7 @@ import { ImageViewerModal } from '../components/viewers/ImageViewerModal';
 import { VideoPlayerModal } from '../components/viewers/VideoPlayerModal';
 import { PdfViewerModal } from '../components/viewers/PdfViewerModal';
 import { CodeEditorModal } from '../components/viewers/CodeEditorModal';
+import { MarkdownEditorModal } from '../components/viewers/MarkdownEditorModal';
 import { FileItem } from '../types';
 import { useDataset } from '../context/DatasetContext';
 import { apiClient } from '../api/client';
@@ -173,6 +174,11 @@ export const BrowserPage: React.FC = () => {
     // PDF Documents
     if (item.category === 'Document' && item.extension.toLowerCase() === '.pdf') {
       return <PdfViewerModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
+    }
+
+    // Markdown file (.md, .markdown)
+    if (item.extension.toLowerCase() === '.md' || item.extension.toLowerCase() === '.markdown') {
+      return <MarkdownEditorModal item={item} snapshotName={snap} onClose={() => setViewingItem(null)} />;
     }
 
     // Text & Code files

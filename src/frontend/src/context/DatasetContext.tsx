@@ -33,6 +33,7 @@ interface DatasetContextType {
   setIsPropertiesOpen: (open: boolean) => void;
   showHidden: boolean;
   setShowHidden: (val: boolean) => void;
+  refreshDatasets: () => Promise<void>;
 }
 
 const DatasetContext = createContext<DatasetContextType>({} as DatasetContextType);
@@ -74,6 +75,15 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const res = await apiClient.get<Dataset[]>('/datasets');
       setDatasets(res.data);
+      setSelectedDataset(prev => {
+        if (!prev) return null;
+        const stillExists = res.data.some(d => d.id === prev.id);
+        if (!stillExists) {
+          navigate('/home');
+          return null;
+        }
+        return prev;
+      });
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Falha ao carregar datasets');
     }
@@ -208,7 +218,8 @@ export const DatasetProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isPropertiesOpen,
         setIsPropertiesOpen,
         showHidden,
-        setShowHidden
+        setShowHidden,
+        refreshDatasets: loadDatasets
       }}
     >
       {children}
