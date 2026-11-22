@@ -96,4 +96,29 @@ public class PhysicalStorageServiceTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _storageService.DeleteItemAsync(_readOnlyDataset, "test.txt"));
     }
+
+    [Fact]
+    public async Task ReadTextContentAsync_ReadsFromSnapshot_WhenSnapshotNameProvided()
+    {
+        var relPath = "arquivo.txt";
+        var liveFile = Path.Combine(_tempDir, relPath);
+        File.WriteAllText(liveFile, "Live Current Content");
+
+        var snapRoot = Path.Combine(_tempDir, ".zfs", "snapshot", "snap1");
+        Directory.CreateDirectory(snapRoot);
+        var snapFile = Path.Combine(snapRoot, relPath);
+        File.WriteAllText(snapFile, "Historical Snapshot Content");
+
+        // Without snapshot -> reads live version
+        var currentText = await _storageService.ReadTextContentAsync(_writableDataset, relPath);
+        Assert.Equal("Live Current Content", currentText);
+
+        // With snapshot -> reads historical snapshot version
+        var snapText = await _storageService.ReadTextContentAsync(_writableDataset, relPath, "snap1");
+        Assert.Equal("Historical Snapshot Content", snapText);
+
+        // With snapshot having @ prefix -> also resolves snapshot correctly
+        var snapTextWithAt = await _storageService.ReadTextContentAsync(_writableDataset, relPath, "@snap1");
+        Assert.Equal("Historical Snapshot Content", snapTextWithAt);
+    }
 }

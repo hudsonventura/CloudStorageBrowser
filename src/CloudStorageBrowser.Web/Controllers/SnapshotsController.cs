@@ -58,6 +58,8 @@ public class SnapshotsController : ControllerBase
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
         if (dataset == null) return NotFound(new { message = "Dataset not found." });
 
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+
         var (stream, contentType, fileName) = await _snapshotService.OpenSnapshotReadAsync(
             dataset, path, snapshotName, cancellationToken);
 
@@ -73,6 +75,8 @@ public class SnapshotsController : ControllerBase
     {
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
         if (dataset == null) return NotFound(new { message = "Dataset not found." });
+
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
 
         var (stream, contentType, fileName) = await _snapshotService.OpenSnapshotReadAsync(
             dataset, path, snapshotName, cancellationToken);

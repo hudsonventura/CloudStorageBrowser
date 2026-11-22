@@ -76,6 +76,11 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
         <div className="px-6 py-3.5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50 dark:bg-zinc-950">
           <div className="flex items-center space-x-3 truncate mr-4">
             <span className="font-bold text-sm text-slate-800 dark:text-zinc-100 truncate">{item.name}</span>
+            {snapshotName && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                @{snapshotName.replace(/^@/, '')}
+              </span>
+            )}
             {isReadOnly && (
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                 Somente Leitura

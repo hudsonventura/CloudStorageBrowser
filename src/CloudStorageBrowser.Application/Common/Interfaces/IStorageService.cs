@@ -63,6 +63,7 @@ public interface IStorageService
     Task<string> ReadTextContentAsync(
         DatasetConfig dataset,
         string relativePath,
+        string? snapshotName = null,
         CancellationToken cancellationToken = default);
 
     Task SaveTextContentAsync(

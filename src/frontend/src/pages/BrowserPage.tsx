@@ -186,7 +186,13 @@ export const BrowserPage: React.FC = () => {
         item={item}
         snapshotName={snap}
         onClose={() => setViewingItem(null)}
-        onDownload={handleDownload}
+        onDownload={(i) => {
+          if (!selectedDataset) return;
+          let url = `/api/files/download?datasetId=${selectedDataset.id}&path=${encodeURIComponent(i.relativePath)}`;
+          if (snap) url += `&snapshotName=${encodeURIComponent(snap)}`;
+          else if (snapshotName) url += `&snapshotName=${encodeURIComponent(snapshotName)}`;
+          window.open(url, '_blank');
+        }}
       />
     );
   };

@@ -163,11 +163,20 @@ public class ZfsSnapshotService : ISnapshotService
         CancellationToken cancellationToken = default)
     {
         var snapRoot = GetSnapshotRoot(dataset.Path);
-        var snapDir = Path.Combine(snapRoot, snapshotName);
+        var cleanSnap = snapshotName.TrimStart('@');
+        var snapDir = Path.Combine(snapRoot, cleanSnap);
 
         if (!Directory.Exists(snapDir))
         {
-            throw new DirectoryNotFoundException($"Snapshot '{snapshotName}' not found.");
+            var altDir = Path.Combine(snapRoot, "@" + cleanSnap);
+            if (Directory.Exists(altDir))
+            {
+                snapDir = altDir;
+            }
+            else
+            {
+                throw new DirectoryNotFoundException($"Snapshot '{snapshotName}' not found.");
+            }
         }
 
         var cleanRelPath = PathSecurityHelper.NormalizeRelativePath(relativePath);

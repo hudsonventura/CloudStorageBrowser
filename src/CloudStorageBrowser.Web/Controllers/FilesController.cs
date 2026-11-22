@@ -96,6 +96,8 @@ public class FilesController : ControllerBase
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
         if (dataset == null) return NotFound();
 
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+
         var (stream, contentType, fileName) = await _storageService.OpenReadAsync(
             dataset, path, snapshotName, cancellationToken);
 
@@ -111,6 +113,8 @@ public class FilesController : ControllerBase
     {
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
         if (dataset == null) return NotFound();
+
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
 
         var (stream, contentType, fileName) = await _storageService.OpenReadAsync(
             dataset, path, snapshotName, cancellationToken);
@@ -239,7 +243,9 @@ public class FilesController : ControllerBase
         var dataset = await _datasetManager.GetDatasetByIdAsync(datasetId, cancellationToken);
         if (dataset == null) return NotFound();
 
-        var content = await _storageService.ReadTextContentAsync(dataset, path, cancellationToken);
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+
+        var content = await _storageService.ReadTextContentAsync(dataset, path, snapshotName, cancellationToken);
         return Ok(new TextContentDto
         {
             DatasetId = datasetId,

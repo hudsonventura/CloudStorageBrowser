@@ -415,14 +415,16 @@ public class PhysicalStorageService : IStorageService
     public async Task<string> ReadTextContentAsync(
         DatasetConfig dataset,
         string relativePath,
+        string? snapshotName = null,
         CancellationToken cancellationToken = default)
     {
+        var basePath = GetEffectiveBasePath(dataset, snapshotName);
         var cleanRelPath = PathSecurityHelper.NormalizeRelativePath(relativePath);
-        var fullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanRelPath);
+        var fullPath = PathSecurityHelper.GetSafeFullPath(basePath, cleanRelPath);
 
         if (!File.Exists(fullPath))
         {
-            throw new FileNotFoundException($"File '{cleanRelPath}' was not found.");
+            throw new FileNotFoundException($"File '{cleanRelPath}' was not found in snapshot '{snapshotName ?? "current"}'.");
         }
 
         return await File.ReadAllTextAsync(fullPath, cancellationToken);
@@ -471,9 +473,15 @@ public class PhysicalStorageService : IStorageService
             return dataset.Path;
         }
 
-        var snapPath = Path.Combine(dataset.Path, ".zfs", "snapshot", snapshotName);
+        var cleanSnap = snapshotName.TrimStart('@');
+        var snapPath = Path.Combine(dataset.Path, ".zfs", "snapshot", cleanSnap);
         if (!Directory.Exists(snapPath))
         {
+            var altPath = Path.Combine(dataset.Path, ".zfs", "snapshot", "@" + cleanSnap);
+            if (Directory.Exists(altPath))
+            {
+                return altPath;
+            }
             throw new DirectoryNotFoundException($"Snapshot '{snapshotName}' not found.");
         }
 
