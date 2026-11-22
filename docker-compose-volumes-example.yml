@@ -1,6 +1,0 @@
-services:
-  cloudstorage:
-    volumes:
-      # Mount user datasets (supports both :rw and :ro flags!)
-      - ./data/datasets/dados:/data/datasets/dados:rw
-      - ./data/datasets/backup:/data/datasets/backup:ro
