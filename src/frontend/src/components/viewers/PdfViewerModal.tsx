@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X, Download, ExternalLink } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
@@ -13,14 +13,6 @@ interface PdfViewerModalProps {
 export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ item, snapshotName, onClose }) => {
   const { selectedDataset } = useDataset();
   const { t } = useI18n();
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   if (!selectedDataset) return null;
 

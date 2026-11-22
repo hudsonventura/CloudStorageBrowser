@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCw, Download, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, ZoomIn, ZoomOut, RotateCw, Download, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useDataset } from '../../context/DatasetContext';
 import { useI18n } from '../../context/I18nContext';
@@ -31,32 +31,98 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [isFit, setIsFit] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
 
-  // Reset zoom and rotation when item changes
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+
+  const imgRef = useRef<HTMLImageElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  // Reset zoom, rotation and fit mode when item changes
   useEffect(() => {
     setScale(1);
     setRotation(0);
+    setIsFit(true);
     setIsLoading(true);
     setHasError(false);
+    setIsDragging(false);
   }, [item.relativePath]);
 
-  // Keyboard navigation & Escape
+  // Toggle strictly between Fit and 100% Zoom
+  const toggleFitZoom = () => {
+    if (isFit) {
+      // Go directly from Fit to 100%
+      setScale(1);
+      setIsFit(false);
+    } else {
+      // Go back to Fit
+      setScale(1);
+      setIsFit(true);
+    }
+  };
+
+  // Keyboard navigation & F toggle
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
         onPrev();
       } else if (e.key === 'ArrowRight' && hasNext && onNext) {
         onNext();
-      } else if (e.key === 'Escape') {
-        onClose();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFitZoom();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasPrev, hasNext, onPrev, onNext, onClose]);
+  }, [hasPrev, hasNext, onPrev, onNext, isFit]);
+
+  // Mouse wheel zoom when zoom is active (not fit)
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (isFit) return;
+      e.preventDefault();
+      const zoomStep = e.deltaY < 0 ? 0.15 : -0.15;
+      setScale(prev => {
+        const next = Math.min(Math.max(prev + zoomStep, 0.25), 10);
+        return parseFloat(next.toFixed(2));
+      });
+    };
+
+    stage.addEventListener('wheel', handleWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', handleWheel);
+  }, [isFit]);
+
+  // Drag-to-pan handlers when in zoom mode
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isFit || e.button !== 0 || !stageRef.current) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: stageRef.current.scrollLeft,
+      scrollTop: stageRef.current.scrollTop
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !stageRef.current || isFit) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    stageRef.current.scrollLeft = dragStart.scrollLeft - dx;
+    stageRef.current.scrollTop = dragStart.scrollTop - dy;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   if (!selectedDataset) return null;
 
@@ -93,15 +159,39 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
 
         {/* Controls */}
         <div className="flex items-center space-x-2">
+          {/* Toggle Fit / 100% Zoom button */}
           <button
-            onClick={() => setScale(prev => Math.min(prev + 0.25, 3))}
+            onClick={toggleFitZoom}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+              !isFit
+                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+            }`}
+            title={t('viewers.toggleFitZoom')}
+          >
+            {!isFit ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            <span>{!isFit ? `${Math.round(scale * 100)}%` : t('viewers.fitMode')}</span>
+            <span className="text-[10px] px-1 py-0.2 bg-black/30 rounded font-mono">F</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setIsFit(false);
+              setScale(prev => Math.min(prev + 0.25, 10));
+            }}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title={t('viewers.zoomIn')}
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setScale(prev => Math.max(prev - 0.25, 0.5))}
+            onClick={() => {
+              setScale(prev => {
+                const next = Math.max(prev - 0.25, 0.5);
+                if (next <= 1) setIsFit(true);
+                return next;
+              });
+            }}
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             title={t('viewers.zoomOut')}
           >
@@ -134,10 +224,16 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
 
       {/* Main Image Stage */}
       <div
+        ref={stageRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
+          if (e.target === e.currentTarget && isFit) onClose();
         }}
-        className="flex-1 w-full flex items-center justify-center overflow-hidden p-6 relative bg-black"
+        className={`flex-1 w-full flex items-center justify-center p-6 relative bg-black select-none ${
+          isFit ? 'overflow-hidden' : `overflow-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
+        }`}
       >
         {/* Navigation Button: Prev < */}
         {hasPrev && onPrev && (
@@ -193,6 +289,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           </div>
         ) : (
           <img
+            ref={imgRef}
             src={rawUrl}
             alt={item.name}
             onLoad={() => setIsLoading(false)}
@@ -202,11 +299,11 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
             }}
             style={{
               transform: `scale(${scale}) rotate(${rotation}deg)`,
-              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+              transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
-            className={`max-h-[85vh] max-w-[85vw] object-contain rounded-lg shadow-2xl ${
-              isLoading ? 'opacity-0' : 'opacity-100'
-            }`}
+            className={`object-contain rounded-lg shadow-2xl select-none ${
+              isFit ? 'max-h-[85vh] max-w-[85vw]' : 'max-h-none max-w-none'
+            } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
           />
         )}
       </div>

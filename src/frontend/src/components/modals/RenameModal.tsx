@@ -8,22 +8,15 @@ import { useI18n } from '../../context/I18nContext';
 interface RenameModalProps {
   item: FileItem;
   onClose: () => void;
+  onRenamed?: (newName: string, newRelativePath: string) => void;
 }
 
-export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
+export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose, onRenamed }) => {
   const { selectedDataset, refreshListing } = useDataset();
   const { t } = useI18n();
   const [newName, setNewName] = useState(item.name);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +30,10 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
         relativePath: item.relativePath,
         newName: newName.trim()
       });
+      const parts = item.relativePath.split('/');
+      parts[parts.length - 1] = newName.trim();
+      const newRelativePath = parts.join('/');
+      onRenamed?.(newName.trim(), newRelativePath);
       refreshListing();
       onClose();
     } catch (err: any) {
@@ -51,7 +48,7 @@ export const RenameModal: React.FC<RenameModalProps> = ({ item, onClose }) => {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+      className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
     >
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">

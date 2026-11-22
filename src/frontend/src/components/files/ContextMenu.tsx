@@ -52,10 +52,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       {item.type === 'File' && (
         <button
           onClick={() => { onClose(); onDownload(item); }}
-          className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 transition-colors"
+          className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between transition-colors"
         >
-          <Download className="w-4 h-4 text-emerald-500" />
-          <span>{t('contextMenu.download')}</span>
+          <div className="flex items-center space-x-2.5">
+            <Download className="w-4 h-4 text-emerald-500" />
+            <span>{t('contextMenu.download')}</span>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">F9</span>
         </button>
       )}
 
@@ -64,28 +67,37 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <button
         disabled={isReadOnly}
         onClick={() => { onClose(); onRename(item); }}
-        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <Edit3 className="w-4 h-4 text-amber-500" />
-        <span>{t('contextMenu.rename')}</span>
+        <div className="flex items-center space-x-2.5">
+          <Edit3 className="w-4 h-4 text-amber-500" />
+          <span>{t('contextMenu.rename')}</span>
+        </div>
+        <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">F2</span>
       </button>
 
       <button
         disabled={isReadOnly}
         onClick={() => { onClose(); onCopy(item); }}
-        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <Copy className="w-4 h-4 text-indigo-500" />
-        <span>{t('contextMenu.copy')}</span>
+        <div className="flex items-center space-x-2.5">
+          <Copy className="w-4 h-4 text-indigo-500" />
+          <span>{t('contextMenu.copy')}</span>
+        </div>
+        <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">F7</span>
       </button>
 
       <button
         disabled={isReadOnly}
         onClick={() => { onClose(); onMove(item); }}
-        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <Move className="w-4 h-4 text-purple-500" />
-        <span>{t('contextMenu.move')}</span>
+        <div className="flex items-center space-x-2.5">
+          <Move className="w-4 h-4 text-purple-500" />
+          <span>{t('contextMenu.move')}</span>
+        </div>
+        <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">F8</span>
       </button>
 
       <div className="h-px bg-slate-100 dark:bg-zinc-800 my-1" />
@@ -93,10 +105,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <button
         disabled={isReadOnly}
         onClick={() => { onClose(); onDelete(item); }}
-        className="w-full px-3.5 py-2 text-left hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center space-x-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full px-3.5 py-2 text-left hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <Trash2 className="w-4 h-4" />
-        <span>{t('contextMenu.delete')}</span>
+        <div className="flex items-center space-x-2.5">
+          <Trash2 className="w-4 h-4" />
+          <span>{t('contextMenu.delete')}</span>
+        </div>
+        <span className="text-[10px] font-mono text-red-400 dark:text-red-500 bg-red-100/50 dark:bg-red-950/50 px-1.5 py-0.5 rounded">Del</span>
       </button>
 
       <button

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X, Download, FileWarning } from 'lucide-react';
 import { FileItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
@@ -17,15 +17,6 @@ export const UnsupportedFileModal: React.FC<UnsupportedFileModalProps> = ({
   onDownload
 }) => {
   const { t, locale } = useI18n();
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';

@@ -156,7 +156,19 @@ export const esES: TranslationDictionary = {
     unsupportedNotice: 'Este tipo de archivo no admite vista previa directa en el navegador. Descárguelo para ejecutarlo o verlo localmente.',
     unsupportedDownload: 'Descargar Archivo',
     snapshotVersion: 'Versión de la Instantánea:',
-    lastModified: 'Última Modificación:'
+    lastModified: 'Última Modificación:',
+    moveTitle: "Mover '{name}'",
+    copyTitle: "Copiar '{name}'",
+    destinationDataset: 'Dataset de Destino',
+    destinationFolder: 'Carpeta de Destino',
+    currentLocation: 'Ubicación Actual',
+    moveHere: 'Mover aquí',
+    copyHere: 'Copiar aquí',
+    moving: 'Moviendo...',
+    copying: 'Copiando...',
+    rootFolder: 'Raíz (/)',
+    subfolderPlaceholder: 'Ruta de la carpeta (ej: documentos/trabajo)',
+    cannotTargetReadOnly: 'Los datasets de solo lectura no pueden recibir archivos.'
   },
   viewers: {
     editor: 'Editor',
@@ -180,6 +192,9 @@ export const esES: TranslationDictionary = {
     emptyMarkdown: 'Archivo markdown vacío.',
     failedToLoadImage: 'No se pudo cargar la imagen',
     checkPermissions: 'Verifique si el archivo existe y si tiene permisos de lectura.',
-    retry: 'Intentar de nuevo'
+    retry: 'Intentar de nuevo',
+    toggleFitZoom: 'Alternar 100% / Ajustar a la pantalla (F)',
+    fitMode: 'Ajustar',
+    zoom100Mode: '100%'
   }
 };

@@ -30,20 +30,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const { selectedDataset } = useDataset();
   const { t } = useI18n();
 
-  // Keyboard navigation & Escape
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
         onPrev();
       } else if (e.key === 'ArrowRight' && hasNext && onNext) {
         onNext();
-      } else if (e.key === 'Escape') {
-        onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasPrev, hasNext, onPrev, onNext, onClose]);
+  }, [hasPrev, hasNext, onPrev, onNext]);
 
   if (!selectedDataset) return null;
 

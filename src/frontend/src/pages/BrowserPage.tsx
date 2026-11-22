@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Header } from '../components/layout/Header';
 import { SidebarLeft } from '../components/layout/SidebarLeft';
 import { PropertiesSidebar } from '../components/layout/PropertiesSidebar';
@@ -14,6 +14,7 @@ import { DragAndDropZone } from '../components/files/DragAndDropZone';
 import { NewFolderModal } from '../components/modals/NewFolderModal';
 import { RenameModal } from '../components/modals/RenameModal';
 import { DeleteModal } from '../components/modals/DeleteModal';
+import { MoveCopyModal } from '../components/modals/MoveCopyModal';
 import { UnsupportedFileModal } from '../components/modals/UnsupportedFileModal';
 import { ImageViewerModal } from '../components/viewers/ImageViewerModal';
 import { VideoPlayerModal } from '../components/viewers/VideoPlayerModal';
@@ -48,6 +49,7 @@ export const BrowserPage: React.FC = () => {
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<FileItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FileItem | null>(null);
+  const [moveCopyTarget, setMoveCopyTarget] = useState<{ item: FileItem; mode: 'move' | 'copy' } | null>(null);
 
   // Viewers state
   const [viewingItem, setViewingItem] = useState<{ item: FileItem; snap?: string | null } | null>(null);
@@ -79,10 +81,13 @@ export const BrowserPage: React.FC = () => {
     }
   };
 
-  const handleDownload = (item: FileItem) => {
+  const handleDownload = (item: FileItem, snap?: string | null) => {
     if (!selectedDataset) return;
+    const token = localStorage.getItem('csb_token') || '';
     let url = `/api/files/download?datasetId=${selectedDataset.id}&path=${encodeURIComponent(item.relativePath)}`;
-    if (snapshotName) url += `&snapshotName=${encodeURIComponent(snapshotName)}`;
+    if (token) url += `&token=${encodeURIComponent(token)}`;
+    const effectiveSnap = snap !== undefined ? snap : snapshotName;
+    if (effectiveSnap) url += `&snapshotName=${encodeURIComponent(effectiveSnap)}`;
     window.open(url, '_blank');
   };
 
@@ -123,6 +128,116 @@ export const BrowserPage: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
     refreshListing();
   };
+
+  // Global keyboard shortcuts and Escape hierarchy:
+  // Order of Escape:
+  // 1. Any open action modal (Rename, Move/Copy, Delete, NewFolder) closes first.
+  // 2. Active file viewer closes next.
+  // 3. Context menu closes last.
+  //
+  // F2: Rename
+  // F9: Download
+  // Del: Delete with confirmation (listing only, not in inputs/viewers)
+  // F8: Move
+  // F7: Copy
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Handle Escape key hierarchy
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (renameTarget !== null) {
+          setRenameTarget(null);
+          return;
+        }
+        if (moveCopyTarget !== null) {
+          setMoveCopyTarget(null);
+          return;
+        }
+        if (deleteTarget !== null) {
+          setDeleteTarget(null);
+          return;
+        }
+        if (isNewFolderOpen) {
+          setIsNewFolderOpen(false);
+          return;
+        }
+        if (viewingItem !== null) {
+          setViewingItem(null);
+          return;
+        }
+        if (contextMenu !== null) {
+          setContextMenu(null);
+          return;
+        }
+        return;
+      }
+
+      // 2. Don't intercept function keys if any action modal is currently open
+      if (
+        isNewFolderOpen ||
+        renameTarget !== null ||
+        deleteTarget !== null ||
+        moveCopyTarget !== null
+      ) {
+        return;
+      }
+
+      // Determine target: active viewer file or currently selected listing item
+      const targetItem = viewingItem ? viewingItem.item : selectedItem;
+      if (!targetItem || !selectedDataset) return;
+
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput = tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable;
+
+      // When in listing view (no file viewer active), don't intercept if focus is inside an input/textarea
+      if (!viewingItem && isInput) {
+        return;
+      }
+
+      const isReadOnly = selectedDataset.accessMode === 'ReadOnly' || !!(viewingItem?.snap || snapshotName);
+
+      if (e.key === 'F2') {
+        e.preventDefault();
+        if (!isReadOnly) {
+          setRenameTarget(targetItem);
+        }
+      } else if (e.key === 'F9') {
+        e.preventDefault();
+        handleDownload(targetItem, viewingItem?.snap);
+      } else if (e.key === 'Delete') {
+        // Delete is restricted to file listing and non-input elements
+        if (!viewingItem && !isInput) {
+          e.preventDefault();
+          if (!isReadOnly) {
+            setDeleteTarget(targetItem);
+          }
+        }
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        if (!isReadOnly) {
+          setMoveCopyTarget({ item: targetItem, mode: 'move' });
+        }
+      } else if (e.key === 'F7') {
+        e.preventDefault();
+        setMoveCopyTarget({ item: targetItem, mode: 'copy' });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    selectedItem,
+    selectedDataset,
+    snapshotName,
+    isNewFolderOpen,
+    renameTarget,
+    deleteTarget,
+    moveCopyTarget,
+    viewingItem,
+    contextMenu
+  ]);
 
   const renderActiveViewer = () => {
     if (!viewingItem) return null;
@@ -413,43 +528,58 @@ export const BrowserPage: React.FC = () => {
           onDownload={handleDownload}
           onRename={(i) => setRenameTarget(i)}
           onDelete={(i) => setDeleteTarget(i)}
-          onCopy={async (i) => {
-            if (!selectedDataset) return;
-            const dest = prompt(t('contextMenu.copyPrompt'), currentPath);
-            if (dest !== null) {
-              await apiClient.post('/files/copy', {
-                datasetId: selectedDataset.id,
-                sourcePath: i.relativePath,
-                targetDirectory: dest
-              });
-              refreshListing();
-            }
-          }}
-          onMove={async (i) => {
-            if (!selectedDataset) return;
-            const dest = prompt(t('contextMenu.movePrompt'), currentPath);
-            if (dest !== null) {
-              await apiClient.post('/files/move', {
-                datasetId: selectedDataset.id,
-                sourcePath: i.relativePath,
-                targetDirectory: dest
-              });
-              refreshListing();
-            }
-          }}
+          onCopy={(i) => setMoveCopyTarget({ item: i, mode: 'copy' })}
+          onMove={(i) => setMoveCopyTarget({ item: i, mode: 'move' })}
           onShowProperties={() => {
             setSelectedItem(contextMenu.item);
           }}
         />
       )}
 
-      {/* Modals */}
-      {isNewFolderOpen && <NewFolderModal onClose={() => setIsNewFolderOpen(false)} />}
-      {renameTarget && <RenameModal item={renameTarget} onClose={() => setRenameTarget(null)} />}
-      {deleteTarget && <DeleteModal item={deleteTarget} onClose={() => setDeleteTarget(null)} />}
-
       {/* Viewers */}
       {renderActiveViewer()}
+
+      {/* Modals */}
+      {isNewFolderOpen && <NewFolderModal onClose={() => setIsNewFolderOpen(false)} />}
+      {renameTarget && (
+        <RenameModal
+          item={renameTarget}
+          onClose={() => setRenameTarget(null)}
+          onRenamed={(newName, newRelativePath) => {
+            if (viewingItem && viewingItem.item.relativePath === renameTarget.relativePath) {
+              setViewingItem(prev => prev ? {
+                ...prev,
+                item: {
+                  ...prev.item,
+                  name: newName,
+                  relativePath: newRelativePath
+                }
+              } : null);
+            }
+            if (selectedItem && selectedItem.relativePath === renameTarget.relativePath) {
+              setSelectedItem({
+                ...selectedItem,
+                name: newName,
+                relativePath: newRelativePath
+              });
+            }
+          }}
+        />
+      )}
+      {deleteTarget && <DeleteModal item={deleteTarget} onClose={() => setDeleteTarget(null)} />}
+      {moveCopyTarget && (
+        <MoveCopyModal
+          item={moveCopyTarget.item}
+          mode={moveCopyTarget.mode}
+          onClose={() => setMoveCopyTarget(null)}
+          onSuccess={() => {
+            if (moveCopyTarget.mode === 'move' && viewingItem?.item.relativePath === moveCopyTarget.item.relativePath) {
+              setViewingItem(null);
+            }
+            refreshListing();
+          }}
+        />
+      )}
     </div>
   );
 };

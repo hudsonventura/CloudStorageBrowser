@@ -156,7 +156,19 @@ export const enUS: TranslationDictionary = {
     unsupportedNotice: 'This file does not support direct browser preview. Download it to execute or view locally.',
     unsupportedDownload: 'Download File',
     snapshotVersion: 'Snapshot Version:',
-    lastModified: 'Last Modified:'
+    lastModified: 'Last Modified:',
+    moveTitle: "Move '{name}'",
+    copyTitle: "Copy '{name}'",
+    destinationDataset: 'Destination Dataset',
+    destinationFolder: 'Destination Folder',
+    currentLocation: 'Current Location',
+    moveHere: 'Move Here',
+    copyHere: 'Copy Here',
+    moving: 'Moving...',
+    copying: 'Copying...',
+    rootFolder: 'Root (/)',
+    subfolderPlaceholder: 'Folder path (e.g. documents/work)',
+    cannotTargetReadOnly: 'Read-only datasets cannot receive files.'
   },
   viewers: {
     editor: 'Editor',
@@ -180,6 +192,9 @@ export const enUS: TranslationDictionary = {
     emptyMarkdown: 'Empty markdown file.',
     failedToLoadImage: 'Failed to load image',
     checkPermissions: 'Check if the file exists and you have read permissions.',
-    retry: 'Try again'
+    retry: 'Try again',
+    toggleFitZoom: 'Toggle 100% / Fit (F)',
+    fitMode: 'Fit',
+    zoom100Mode: '100%'
   }
 };

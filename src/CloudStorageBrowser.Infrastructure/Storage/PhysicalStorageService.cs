@@ -346,13 +346,24 @@ public class PhysicalStorageService : IStorageService
         string targetRelativePath,
         CancellationToken cancellationToken = default)
     {
-        EnsureWritable(dataset);
+        return MoveItemAsync(dataset, sourceRelativePath, dataset, targetRelativePath, cancellationToken);
+    }
+
+    public Task MoveItemAsync(
+        DatasetConfig sourceDataset,
+        string sourceRelativePath,
+        DatasetConfig targetDataset,
+        string targetRelativePath,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureWritable(sourceDataset);
+        EnsureWritable(targetDataset);
 
         var cleanSource = PathSecurityHelper.NormalizeRelativePath(sourceRelativePath);
         var cleanTarget = PathSecurityHelper.NormalizeRelativePath(targetRelativePath);
 
-        var sourceFullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanSource);
-        var targetFullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanTarget);
+        var sourceFullPath = PathSecurityHelper.GetSafeFullPath(sourceDataset.Path, cleanSource);
+        var targetFullPath = PathSecurityHelper.GetSafeFullPath(targetDataset.Path, cleanTarget);
 
         var targetParent = Path.GetDirectoryName(targetFullPath);
         if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
@@ -362,11 +373,27 @@ public class PhysicalStorageService : IStorageService
 
         if (File.Exists(sourceFullPath))
         {
-            File.Move(sourceFullPath, targetFullPath, overwrite: true);
+            if (string.Equals(sourceDataset.Path, targetDataset.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                File.Move(sourceFullPath, targetFullPath, overwrite: true);
+            }
+            else
+            {
+                File.Copy(sourceFullPath, targetFullPath, overwrite: true);
+                File.Delete(sourceFullPath);
+            }
         }
         else if (Directory.Exists(sourceFullPath))
         {
-            Directory.Move(sourceFullPath, targetFullPath);
+            if (string.Equals(sourceDataset.Path, targetDataset.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.Move(sourceFullPath, targetFullPath);
+            }
+            else
+            {
+                CopyDirectoryRecursive(sourceFullPath, targetFullPath);
+                Directory.Delete(sourceFullPath, recursive: true);
+            }
         }
         else
         {
@@ -376,28 +403,38 @@ public class PhysicalStorageService : IStorageService
         return Task.CompletedTask;
     }
 
-    public async Task CopyItemAsync(
+    public Task CopyItemAsync(
         DatasetConfig dataset,
         string sourceRelativePath,
         string targetRelativePath,
         CancellationToken cancellationToken = default)
     {
-        EnsureWritable(dataset);
+        return CopyItemAsync(dataset, sourceRelativePath, dataset, targetRelativePath, cancellationToken);
+    }
+
+    public async Task CopyItemAsync(
+        DatasetConfig sourceDataset,
+        string sourceRelativePath,
+        DatasetConfig targetDataset,
+        string targetRelativePath,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureWritable(targetDataset);
 
         var cleanSource = PathSecurityHelper.NormalizeRelativePath(sourceRelativePath);
         var cleanTarget = PathSecurityHelper.NormalizeRelativePath(targetRelativePath);
 
-        var sourceFullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanSource);
-        var targetFullPath = PathSecurityHelper.GetSafeFullPath(dataset.Path, cleanTarget);
+        var sourceFullPath = PathSecurityHelper.GetSafeFullPath(sourceDataset.Path, cleanSource);
+        var targetFullPath = PathSecurityHelper.GetSafeFullPath(targetDataset.Path, cleanTarget);
+
+        var targetParent = Path.GetDirectoryName(targetFullPath);
+        if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
+        {
+            Directory.CreateDirectory(targetParent);
+        }
 
         if (File.Exists(sourceFullPath))
         {
-            var targetParent = Path.GetDirectoryName(targetFullPath);
-            if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
-            {
-                Directory.CreateDirectory(targetParent);
-            }
-
             File.Copy(sourceFullPath, targetFullPath, overwrite: true);
         }
         else if (Directory.Exists(sourceFullPath))

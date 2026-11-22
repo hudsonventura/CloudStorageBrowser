@@ -48,6 +48,7 @@ public class RenameItemDto
 public class MoveCopyItemDto
 {
     public int DatasetId { get; set; }
+    public int? TargetDatasetId { get; set; }
     public string SourcePath { get; set; } = string.Empty;
     public string TargetDirectory { get; set; } = string.Empty;
 }

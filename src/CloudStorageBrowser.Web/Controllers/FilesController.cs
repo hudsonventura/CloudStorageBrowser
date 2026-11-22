@@ -187,36 +187,53 @@ public class FilesController : ControllerBase
     [HttpPost("move")]
     public async Task<IActionResult> Move([FromBody] MoveCopyItemDto dto, CancellationToken cancellationToken)
     {
-        var dataset = await _datasetManager.GetDatasetByIdAsync(dto.DatasetId, cancellationToken);
-        if (dataset == null) return NotFound(new { message = "Dataset not found." });
+        var sourceDataset = await _datasetManager.GetDatasetByIdAsync(dto.DatasetId, cancellationToken);
+        if (sourceDataset == null) return NotFound(new { message = "Source dataset not found." });
 
-        if (dataset.AccessMode == DatasetAccessMode.ReadOnly)
-            return StatusCode(403, new { message = "Cannot move items in a Read-Only dataset." });
+        var targetDatasetId = dto.TargetDatasetId ?? dto.DatasetId;
+        var targetDataset = (targetDatasetId == dto.DatasetId)
+            ? sourceDataset
+            : await _datasetManager.GetDatasetByIdAsync(targetDatasetId, cancellationToken);
+
+        if (targetDataset == null) return NotFound(new { message = "Target dataset not found." });
+
+        if (sourceDataset.AccessMode == DatasetAccessMode.ReadOnly)
+            return StatusCode(403, new { message = "Cannot move items from a Read-Only dataset." });
+
+        if (targetDataset.AccessMode == DatasetAccessMode.ReadOnly)
+            return StatusCode(403, new { message = "Cannot move items into a Read-Only dataset." });
 
         var fileName = Path.GetFileName(dto.SourcePath);
         var targetPath = string.IsNullOrEmpty(dto.TargetDirectory)
             ? fileName
             : $"{dto.TargetDirectory}/{fileName}";
 
-        await _storageService.MoveItemAsync(dataset, dto.SourcePath, targetPath, cancellationToken);
+        await _storageService.MoveItemAsync(sourceDataset, dto.SourcePath, targetDataset, targetPath, cancellationToken);
         return Ok(new { message = "Item moved successfully." });
     }
 
     [HttpPost("copy")]
     public async Task<IActionResult> Copy([FromBody] MoveCopyItemDto dto, CancellationToken cancellationToken)
     {
-        var dataset = await _datasetManager.GetDatasetByIdAsync(dto.DatasetId, cancellationToken);
-        if (dataset == null) return NotFound(new { message = "Dataset not found." });
+        var sourceDataset = await _datasetManager.GetDatasetByIdAsync(dto.DatasetId, cancellationToken);
+        if (sourceDataset == null) return NotFound(new { message = "Source dataset not found." });
 
-        if (dataset.AccessMode == DatasetAccessMode.ReadOnly)
-            return StatusCode(403, new { message = "Cannot copy items in a Read-Only dataset." });
+        var targetDatasetId = dto.TargetDatasetId ?? dto.DatasetId;
+        var targetDataset = (targetDatasetId == dto.DatasetId)
+            ? sourceDataset
+            : await _datasetManager.GetDatasetByIdAsync(targetDatasetId, cancellationToken);
+
+        if (targetDataset == null) return NotFound(new { message = "Target dataset not found." });
+
+        if (targetDataset.AccessMode == DatasetAccessMode.ReadOnly)
+            return StatusCode(403, new { message = "Cannot copy items into a Read-Only dataset." });
 
         var fileName = Path.GetFileName(dto.SourcePath);
         var targetPath = string.IsNullOrEmpty(dto.TargetDirectory)
             ? fileName
             : $"{dto.TargetDirectory}/{fileName}";
 
-        await _storageService.CopyItemAsync(dataset, dto.SourcePath, targetPath, cancellationToken);
+        await _storageService.CopyItemAsync(sourceDataset, dto.SourcePath, targetDataset, targetPath, cancellationToken);
         return Ok(new { message = "Item copied successfully." });
     }
 

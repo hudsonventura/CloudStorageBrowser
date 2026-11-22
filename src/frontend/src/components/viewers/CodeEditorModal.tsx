@@ -22,14 +22,6 @@ export const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ item, snapshot
   const isReadOnly = selectedDataset?.accessMode === 'ReadOnly' || !!snapshotName;
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  useEffect(() => {
     if (!selectedDataset) return;
     setIsLoading(true);
     apiClient.get('/files/content', {

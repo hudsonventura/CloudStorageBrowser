@@ -81,7 +81,7 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
       .finally(() => setIsLoading(false));
   }, [item.relativePath, selectedDataset?.id, snapshotName, t]);
 
-  // Keyboard shortcut for Save (Ctrl+S / Cmd+S) and Close (Escape)
+  // Keyboard shortcut for Save (Ctrl+S / Cmd+S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -89,13 +89,11 @@ export const MarkdownEditorModal: React.FC<MarkdownEditorModalProps> = ({
         if (!isReadOnly && !isSaving && !isLoading) {
           handleSave();
         }
-      } else if (e.key === 'Escape') {
-        onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, isReadOnly, isSaving, isLoading, content]);
+  }, [isReadOnly, isSaving, isLoading, content]);
 
   const handleSave = async () => {
     if (!selectedDataset || isReadOnly) return;

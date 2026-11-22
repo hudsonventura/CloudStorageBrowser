@@ -54,9 +54,23 @@ public interface IStorageService
         string targetRelativePath,
         CancellationToken cancellationToken = default);
 
+    Task MoveItemAsync(
+        DatasetConfig sourceDataset,
+        string sourceRelativePath,
+        DatasetConfig targetDataset,
+        string targetRelativePath,
+        CancellationToken cancellationToken = default);
+
     Task CopyItemAsync(
         DatasetConfig dataset,
         string sourceRelativePath,
+        string targetRelativePath,
+        CancellationToken cancellationToken = default);
+
+    Task CopyItemAsync(
+        DatasetConfig sourceDataset,
+        string sourceRelativePath,
+        DatasetConfig targetDataset,
         string targetRelativePath,
         CancellationToken cancellationToken = default);
 

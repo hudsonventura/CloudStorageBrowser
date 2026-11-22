@@ -157,6 +157,18 @@ export interface TranslationDictionary {
     unsupportedDownload: string;
     snapshotVersion: string;
     lastModified: string;
+    moveTitle: string;
+    copyTitle: string;
+    destinationDataset: string;
+    destinationFolder: string;
+    currentLocation: string;
+    moveHere: string;
+    copyHere: string;
+    moving: string;
+    copying: string;
+    rootFolder: string;
+    subfolderPlaceholder: string;
+    cannotTargetReadOnly: string;
   };
   viewers: {
     editor: string;
@@ -181,5 +193,8 @@ export interface TranslationDictionary {
     failedToLoadImage: string;
     checkPermissions: string;
     retry: string;
+    toggleFitZoom: string;
+    fitMode: string;
+    zoom100Mode: string;
   };
 }
