@@ -79,7 +79,10 @@ export const esES: TranslationDictionary = {
     pageOf: 'Página {page} de {pages}',
     showing: 'Mostrando {from} a {to} de {total} elementos',
     previous: 'Anterior',
-    next: 'Siguiente'
+    next: 'Siguiente',
+    jumpToPage: 'Ir a la página',
+    firstPage: 'Primera página',
+    lastPage: 'Última página'
   },
   contextMenu: {
     open: 'Abrir',

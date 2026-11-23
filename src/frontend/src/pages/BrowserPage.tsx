@@ -450,15 +450,15 @@ export const BrowserPage: React.FC = () => {
         ) : (
           /* File Directory Browsing View */
           <DragAndDropZone>
-            <main className="flex-1 min-h-0 overflow-y-auto px-8 py-5 flex flex-col justify-between">
-              <div>
-                {/* Top Bar inside central pane: Breadcrumbs and View Toggles */}
-                <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-zinc-800">
-                  <Breadcrumbs />
-                  <ViewModeToggle />
-                </div>
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              {/* Top Bar inside central pane: Breadcrumbs and View Toggles */}
+              <div className="px-8 pt-5 pb-3 border-b border-slate-200/80 dark:border-zinc-800 flex items-center justify-between shrink-0">
+                <Breadcrumbs />
+                <ViewModeToggle />
+              </div>
 
-                {/* Main Content States */}
+              {/* Scrollable File Listing */}
+              <main className="flex-1 min-h-0 overflow-y-auto px-8 py-5">
                 {error ? (
                   <div className="p-4 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-sm rounded-2xl flex items-center space-x-3 max-w-xl mx-auto my-12">
                     <AlertCircle className="w-5 h-5 shrink-0" />
@@ -499,13 +499,13 @@ export const BrowserPage: React.FC = () => {
                     )}
                   </>
                 )}
-              </div>
+              </main>
 
-              {/* Pagination at bottom */}
-              <div className="mt-8">
+              {/* Fixed Pagination Footbar at Bottom */}
+              <footer className="shrink-0">
                 <Pagination />
-              </div>
-            </main>
+              </footer>
+            </div>
           </DragAndDropZone>
         )}
 

@@ -79,7 +79,10 @@ export const ptBR: TranslationDictionary = {
     pageOf: 'Página {page} de {pages}',
     showing: 'Exibindo {from} a {to} de {total} itens',
     previous: 'Anterior',
-    next: 'Próxima'
+    next: 'Próxima',
+    jumpToPage: 'Ir para página',
+    firstPage: 'Primeira página',
+    lastPage: 'Última página'
   },
   contextMenu: {
     open: 'Abrir',

@@ -80,6 +80,9 @@ export interface TranslationDictionary {
     showing: string;
     previous: string;
     next: string;
+    jumpToPage: string;
+    firstPage: string;
+    lastPage: string;
   };
   contextMenu: {
     open: string;
