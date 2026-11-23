@@ -71,6 +71,7 @@ export const enUS: TranslationDictionary = {
     colSize: 'Size',
     colLastModified: 'Modified',
     colType: 'Type',
+    colDimensions: 'Dimensions',
     colActions: 'Actions',
     viewThumbnails: 'Thumbnails',
     viewDetails: 'Details'

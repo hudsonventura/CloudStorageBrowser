@@ -19,4 +19,7 @@ public class StorageItem
     public int? FilesCount { get; set; }
     public int? DirectoriesCount { get; set; }
     public bool IsCalculatingStats { get; set; }
+    public int? Width { get; set; }
+    public int? Height { get; set; }
+    public long? DimensionsArea => (Width.HasValue && Height.HasValue) ? (long)Width.Value * Height.Value : null;
 }

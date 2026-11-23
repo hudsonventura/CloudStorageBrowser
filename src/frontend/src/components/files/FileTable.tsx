@@ -76,6 +76,15 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
               </div>
             </th>
             <th
+              onClick={() => handleSort('Dimensions')}
+              className="py-3 px-4 w-32 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
+            >
+              <div className="flex items-center space-x-1.5">
+                <span>{t('filesTable.colDimensions')}</span>
+                {renderSortIcon('Dimensions')}
+              </div>
+            </th>
+            <th
               onClick={() => handleSort('LastModified')}
               className="py-3 px-4 w-44 cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200 transition-colors group"
             >
@@ -148,6 +157,9 @@ export const FileTable: React.FC<FileTableProps> = ({ items, onContextMenu, onOp
                   ) : (
                     '--'
                   )}
+                </td>
+                <td className="py-2.5 px-4 font-mono text-slate-500 dark:text-zinc-400">
+                  {item.width && item.height ? `${item.width} × ${item.height}` : '--'}
                 </td>
                 <td className="py-2.5 px-4 text-slate-500 dark:text-zinc-400">
                   {formatDate(item.lastModifiedAtUtc)}

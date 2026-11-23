@@ -73,7 +73,9 @@ public class FilesController : ControllerBase
             SubitemsCount = item.SubitemsCount,
             FilesCount = item.FilesCount,
             DirectoriesCount = item.DirectoriesCount,
-            IsCalculatingStats = item.IsCalculatingStats
+            IsCalculatingStats = item.IsCalculatingStats,
+            Width = item.Width,
+            Height = item.Height
         }).ToList();
 
         // Also fetch or queue stats for current directory

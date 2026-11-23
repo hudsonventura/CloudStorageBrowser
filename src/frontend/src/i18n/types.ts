@@ -71,6 +71,7 @@ export interface TranslationDictionary {
     colSize: string;
     colLastModified: string;
     colType: string;
+    colDimensions: string;
     colActions: string;
     viewThumbnails: string;
     viewDetails: string;

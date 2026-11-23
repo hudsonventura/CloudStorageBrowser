@@ -71,6 +71,7 @@ export const esES: TranslationDictionary = {
     colSize: 'Tamaño',
     colLastModified: 'Modificado',
     colType: 'Tipo',
+    colDimensions: 'Dimensiones',
     colActions: 'Acciones',
     viewThumbnails: 'Miniaturas',
     viewDetails: 'Detalles'

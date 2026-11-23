@@ -5,5 +5,6 @@ public enum SortField
     Name = 0,
     Size = 1,
     LastModified = 2,
-    Extension = 3
+    Extension = 3,
+    Dimensions = 4
 }

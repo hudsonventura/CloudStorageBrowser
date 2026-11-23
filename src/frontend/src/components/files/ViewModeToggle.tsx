@@ -13,7 +13,8 @@ export const ViewModeToggle: React.FC = () => {
     { label: t('filesTable.colName'), field: 'Name' },
     { label: t('filesTable.colSize'), field: 'Size' },
     { label: t('filesTable.colLastModified'), field: 'LastModified' },
-    { label: t('filesTable.colType'), field: 'Extension' }
+    { label: t('filesTable.colType'), field: 'Extension' },
+    { label: t('filesTable.colDimensions'), field: 'Dimensions' }
   ];
 
   return (

@@ -1,9 +1,18 @@
+using System.Diagnostics;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using CloudStorageBrowser.Application.Common.Interfaces;
 using CloudStorageBrowser.Application.Common.Models;
 using CloudStorageBrowser.Domain.Entities;
 using CloudStorageBrowser.Domain.Enums;
 using CloudStorageBrowser.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
+using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
+using MetadataExtractor.Formats.Jpeg;
+using MetadataExtractor.Formats.Png;
+using Directory = System.IO.Directory;
 
 namespace CloudStorageBrowser.Infrastructure.Storage;
 
@@ -47,69 +56,72 @@ public class PhysicalStorageService : IStorageService
 
         var items = new List<StorageItem>();
 
-        // Enumerate directories
-        foreach (var subDir in dirInfo.EnumerateDirectories())
+        // Enumerate directories (disregarded when sorting by Dimensions)
+        if (pagination.SortBy != SortField.Dimensions)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Hide the .zfs system directory from regular listings
-            if (subDir.Name.Equals(".zfs", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            // Hide hidden directories starting with '.' unless ShowHidden is true
-            if (!pagination.ShowHidden && subDir.Name.StartsWith('.'))
-                continue;
-
-            // Search filter
-            if (!string.IsNullOrWhiteSpace(pagination.Search) &&
-                !subDir.Name.Contains(pagination.Search, StringComparison.OrdinalIgnoreCase))
+            foreach (var subDir in dirInfo.EnumerateDirectories())
             {
-                continue;
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            var itemRelPath = string.IsNullOrEmpty(cleanRelPath)
-                ? subDir.Name
-                : $"{cleanRelPath}/{subDir.Name}";
+                // Hide the .zfs system directory from regular listings
+                if (subDir.Name.Equals(".zfs", StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-            long dirSize = 0;
-            int? subitemsCount = null;
-            int? filesCount = null;
-            int? dirsCount = null;
-            bool isCalculating = false;
+                // Hide hidden directories starting with '.' unless ShowHidden is true
+                if (!pagination.ShowHidden && subDir.Name.StartsWith('.'))
+                    continue;
 
-            if (_folderStatsService != null)
-            {
-                var stats = await _folderStatsService.GetFolderStatsAsync(
-                    dataset.Id, itemRelPath, snapshotName, queueIfMissing: true, cancellationToken);
-
-                if (stats != null)
+                // Search filter
+                if (!string.IsNullOrWhiteSpace(pagination.Search) &&
+                    !subDir.Name.Contains(pagination.Search, StringComparison.OrdinalIgnoreCase))
                 {
-                    dirSize = stats.TotalBytes;
-                    subitemsCount = stats.TotalSubitemsCount;
-                    filesCount = stats.FilesCount;
-                    dirsCount = stats.DirectoriesCount;
-                    isCalculating = stats.IsCalculating;
+                    continue;
                 }
-            }
 
-            items.Add(new StorageItem
-            {
-                Name = subDir.Name,
-                RelativePath = itemRelPath,
-                FullPath = subDir.FullName,
-                Type = ItemType.Directory,
-                Size = dirSize,
-                SubitemsCount = subitemsCount,
-                FilesCount = filesCount,
-                DirectoriesCount = dirsCount,
-                IsCalculatingStats = isCalculating,
-                CreatedAtUtc = subDir.CreationTimeUtc,
-                LastModifiedAtUtc = subDir.LastWriteTimeUtc,
-                Extension = string.Empty,
-                Category = FileCategory.Other,
-                IsReadOnly = isReadOnly,
-                HasShadowCopy = hasShadowCopy
-            });
+                var itemRelPath = string.IsNullOrEmpty(cleanRelPath)
+                    ? subDir.Name
+                    : $"{cleanRelPath}/{subDir.Name}";
+
+                long dirSize = 0;
+                int? subitemsCount = null;
+                int? filesCount = null;
+                int? dirsCount = null;
+                bool isCalculating = false;
+
+                if (_folderStatsService != null)
+                {
+                    var stats = await _folderStatsService.GetFolderStatsAsync(
+                        dataset.Id, itemRelPath, snapshotName, queueIfMissing: true, cancellationToken);
+
+                    if (stats != null)
+                    {
+                        dirSize = stats.TotalBytes;
+                        subitemsCount = stats.TotalSubitemsCount;
+                        filesCount = stats.FilesCount;
+                        dirsCount = stats.DirectoriesCount;
+                        isCalculating = stats.IsCalculating;
+                    }
+                }
+
+                items.Add(new StorageItem
+                {
+                    Name = subDir.Name,
+                    RelativePath = itemRelPath,
+                    FullPath = subDir.FullName,
+                    Type = ItemType.Directory,
+                    Size = dirSize,
+                    SubitemsCount = subitemsCount,
+                    FilesCount = filesCount,
+                    DirectoriesCount = dirsCount,
+                    IsCalculatingStats = isCalculating,
+                    CreatedAtUtc = subDir.CreationTimeUtc,
+                    LastModifiedAtUtc = subDir.LastWriteTimeUtc,
+                    Extension = string.Empty,
+                    Category = FileCategory.Other,
+                    IsReadOnly = isReadOnly,
+                    HasShadowCopy = hasShadowCopy
+                });
+            }
         }
 
         // Enumerate files
@@ -132,6 +144,15 @@ public class PhysicalStorageService : IStorageService
                 : $"{cleanRelPath}/{file.Name}";
 
             var ext = file.Extension.ToLowerInvariant();
+            var category = FileCategoryHelper.GetCategory(ext);
+
+            int? width = null;
+            int? height = null;
+            if (pagination.SortBy == SortField.Dimensions &&
+                (category == FileCategory.Image || category == FileCategory.Video))
+            {
+                (width, height) = GetMediaDimensions(file.FullName, category, ext);
+            }
 
             items.Add(new StorageItem
             {
@@ -143,9 +164,11 @@ public class PhysicalStorageService : IStorageService
                 CreatedAtUtc = file.CreationTimeUtc,
                 LastModifiedAtUtc = file.LastWriteTimeUtc,
                 Extension = ext,
-                Category = FileCategoryHelper.GetCategory(ext),
+                Category = category,
                 IsReadOnly = isReadOnly,
-                HasShadowCopy = hasShadowCopy
+                HasShadowCopy = hasShadowCopy,
+                Width = width,
+                Height = height
             });
         }
 
@@ -164,6 +187,9 @@ public class PhysicalStorageService : IStorageService
             SortField.Extension => isAsc
                 ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.Extension).ThenBy(x => x.Name)
                 : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.Extension).ThenBy(x => x.Name),
+            SortField.Dimensions => isAsc
+                ? items.OrderBy(x => x.DimensionsArea ?? 0).ThenBy(x => x.Name)
+                : items.OrderByDescending(x => x.DimensionsArea ?? 0).ThenBy(x => x.Name),
             _ => isAsc
                 ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.Name)
                 : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.Name)
@@ -177,6 +203,18 @@ public class PhysicalStorageService : IStorageService
             .Skip((pagination.Page - 1) * pagination.PageSize)
             .Take(pagination.PageSize)
             .ToList();
+
+        // Populate dimensions for current page items if not already populated
+        foreach (var item in pagedItems)
+        {
+            if (item.Type == ItemType.File && !item.Width.HasValue &&
+                (item.Category == FileCategory.Image || item.Category == FileCategory.Video))
+            {
+                var (w, h) = GetMediaDimensions(item.FullPath, item.Category, item.Extension);
+                item.Width = w;
+                item.Height = h;
+            }
+        }
 
         return new PagedResult<StorageItem>
         {
@@ -206,6 +244,11 @@ public class PhysicalStorageService : IStorageService
         {
             var file = new FileInfo(fullPath);
             var ext = file.Extension.ToLowerInvariant();
+            var category = FileCategoryHelper.GetCategory(ext);
+            var (w, h) = (category == FileCategory.Image || category == FileCategory.Video)
+                ? GetMediaDimensions(fullPath, category, ext)
+                : (null, null);
+
             return new StorageItem
             {
                 Name = file.Name,
@@ -216,9 +259,11 @@ public class PhysicalStorageService : IStorageService
                 CreatedAtUtc = file.CreationTimeUtc,
                 LastModifiedAtUtc = file.LastWriteTimeUtc,
                 Extension = ext,
-                Category = FileCategoryHelper.GetCategory(ext),
+                Category = category,
                 IsReadOnly = isReadOnly,
-                HasShadowCopy = hasShadowCopy
+                HasShadowCopy = hasShadowCopy,
+                Width = w,
+                Height = h
             };
         }
 
@@ -631,6 +676,124 @@ public class PhysicalStorageService : IStorageService
             var dest = Path.Combine(targetDir, Path.GetFileName(sub));
             CopyDirectoryRecursive(sub, dest);
         }
+    }
+
+    private static (int? Width, int? Height) GetMediaDimensions(string fullPath, FileCategory category, string ext)
+    {
+        if (category == FileCategory.Image)
+        {
+            // 1. SVG
+            if (ext == ".svg")
+            {
+                try
+                {
+                    using var fs = File.OpenRead(fullPath);
+                    using var reader = new StreamReader(fs);
+                    var buffer = new char[4096];
+                    var read = reader.Read(buffer, 0, buffer.Length);
+                    var head = new string(buffer, 0, read);
+
+                    var widthMatch = Regex.Match(head, @"width=[""']([\d\.]+)(?:px)?[""']", RegexOptions.IgnoreCase);
+                    var heightMatch = Regex.Match(head, @"height=[""']([\d\.]+)(?:px)?[""']", RegexOptions.IgnoreCase);
+                    if (widthMatch.Success && heightMatch.Success)
+                    {
+                        if (double.TryParse(widthMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var w) &&
+                            double.TryParse(heightMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var h))
+                        {
+                            return ((int)Math.Round(w), (int)Math.Round(h));
+                        }
+                    }
+
+                    var viewBoxMatch = Regex.Match(head, @"viewBox=[""'][\d\.\s-]+[\s,]+[\d\.\s-]+[\s,]+([\d\.]+)[\s,]+([\d\.]+)[""']", RegexOptions.IgnoreCase);
+                    if (viewBoxMatch.Success)
+                    {
+                        if (double.TryParse(viewBoxMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var vw) &&
+                            double.TryParse(viewBoxMatch.Groups[2].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var vh))
+                        {
+                            return ((int)Math.Round(vw), (int)Math.Round(vh));
+                        }
+                    }
+                }
+                catch { }
+                return (null, null);
+            }
+
+            // 2. Fast inspection via SkiaSharp SKCodec
+            try
+            {
+                using var stream = File.OpenRead(fullPath);
+                using var codec = SKCodec.Create(stream);
+                if (codec != null && codec.Info.Width > 0 && codec.Info.Height > 0)
+                {
+                    return (codec.Info.Width, codec.Info.Height);
+                }
+            }
+            catch { }
+
+            // 3. Fallback: MetadataExtractor
+            try
+            {
+                var directories = MetadataExtractor.ImageMetadataReader.ReadMetadata(fullPath);
+                foreach (var dir in directories)
+                {
+                    int? w = null;
+                    int? h = null;
+
+                    if (dir.TryGetInt32(MetadataExtractor.Formats.Png.PngDirectory.TagImageWidth, out var pw)) w = pw;
+                    if (dir.TryGetInt32(MetadataExtractor.Formats.Png.PngDirectory.TagImageHeight, out var ph)) h = ph;
+
+                    if (!w.HasValue && dir.TryGetInt32(MetadataExtractor.Formats.Jpeg.JpegDirectory.TagImageWidth, out var jw)) w = jw;
+                    if (!h.HasValue && dir.TryGetInt32(MetadataExtractor.Formats.Jpeg.JpegDirectory.TagImageHeight, out var jh)) h = jh;
+
+                    if (!w.HasValue && dir.TryGetInt32(MetadataExtractor.Formats.Exif.ExifDirectoryBase.TagExifImageWidth, out var ew)) w = ew;
+                    if (!h.HasValue && dir.TryGetInt32(MetadataExtractor.Formats.Exif.ExifDirectoryBase.TagExifImageHeight, out var eh)) h = eh;
+
+                    if (w.HasValue && h.HasValue && w > 0 && h > 0)
+                    {
+                        return (w, h);
+                    }
+                }
+            }
+            catch { }
+        }
+        else if (category == FileCategory.Video)
+        {
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "ffprobe",
+                    Arguments = $"-v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 \"{fullPath}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(processInfo);
+                if (process != null)
+                {
+                    if (process.WaitForExit(1000))
+                    {
+                        var output = process.StandardOutput.ReadToEnd().Trim();
+                        var parts = output.Split('x');
+                        if (parts.Length == 2 &&
+                            int.TryParse(parts[0], out var vw) &&
+                            int.TryParse(parts[1], out var vh))
+                        {
+                            return (vw, vh);
+                        }
+                    }
+                    else
+                    {
+                        try { process.Kill(); } catch { }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        return (null, null);
     }
 
     private static string GetMimeType(string extension) => extension switch

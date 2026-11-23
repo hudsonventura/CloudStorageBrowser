@@ -185,4 +185,70 @@ public class PhysicalStorageServiceTests : IDisposable
         var snapTextWithAt = await _storageService.ReadTextContentAsync(_writableDataset, relPath, "@snap1");
         Assert.Equal("Historical Snapshot Content", snapTextWithAt);
     }
+
+    [Fact]
+    public async Task ListDirectoryAsync_SortByDimensions_DisregardsSubdirectories_AndSortsByArea()
+    {
+        // 1. Create subdirectories in the directory
+        Directory.CreateDirectory(Path.Combine(_tempDir, "subfolder_alpha"));
+        Directory.CreateDirectory(Path.Combine(_tempDir, "subfolder_beta"));
+
+        // 2. Create images with various dimensions:
+        // img_small: 100 x 200 = 20,000 px
+        // img_medium: 800 x 600 = 480,000 px
+        // img_large: 1920 x 1080 = 2,073,600 px
+        CreateTestPng(Path.Combine(_tempDir, "img_medium.png"), 800, 600);
+        CreateTestPng(Path.Combine(_tempDir, "img_large.png"), 1920, 1080);
+        CreateTestPng(Path.Combine(_tempDir, "img_small.png"), 100, 200);
+
+        var paginationAsc = new PaginationParams
+        {
+            Page = 1,
+            PageSize = 50,
+            SortBy = SortField.Dimensions,
+            SortDirection = SortDirection.Ascending
+        };
+
+        var resultAsc = await _storageService.ListDirectoryAsync(_writableDataset, "", paginationAsc);
+
+        // Subdirectories must be disregarded!
+        Assert.DoesNotContain(resultAsc.Items, x => x.Type == ItemType.Directory);
+        Assert.Equal(3, resultAsc.Items.Count);
+
+        // Ascending order: small (20k) -> medium (480k) -> large (2.07M)
+        Assert.Equal("img_small.png", resultAsc.Items[0].Name);
+        Assert.Equal(20000, resultAsc.Items[0].DimensionsArea);
+
+        Assert.Equal("img_medium.png", resultAsc.Items[1].Name);
+        Assert.Equal(480000, resultAsc.Items[1].DimensionsArea);
+
+        Assert.Equal("img_large.png", resultAsc.Items[2].Name);
+        Assert.Equal(2073600, resultAsc.Items[2].DimensionsArea);
+
+        // Descending order: large -> medium -> small
+        var paginationDesc = new PaginationParams
+        {
+            Page = 1,
+            PageSize = 50,
+            SortBy = SortField.Dimensions,
+            SortDirection = SortDirection.Descending
+        };
+
+        var resultDesc = await _storageService.ListDirectoryAsync(_writableDataset, "", paginationDesc);
+
+        Assert.DoesNotContain(resultDesc.Items, x => x.Type == ItemType.Directory);
+        Assert.Equal(3, resultDesc.Items.Count);
+        Assert.Equal("img_large.png", resultDesc.Items[0].Name);
+        Assert.Equal("img_medium.png", resultDesc.Items[1].Name);
+        Assert.Equal("img_small.png", resultDesc.Items[2].Name);
+    }
+
+    private static void CreateTestPng(string path, int width, int height)
+    {
+        using var bitmap = new SkiaSharp.SKBitmap(width, height);
+        using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 80);
+        using var stream = File.OpenWrite(path);
+        data.SaveTo(stream);
+    }
 }

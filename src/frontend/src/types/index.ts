@@ -14,7 +14,7 @@ export type FileCategory =
   | 'Text'
   | 'Other';
 
-export type SortField = 'Name' | 'Size' | 'LastModified' | 'Extension';
+export type SortField = 'Name' | 'Size' | 'LastModified' | 'Extension' | 'Dimensions';
 export type SortDirection = 'Ascending' | 'Descending';
 
 export type SnapshotChangeStatus = 'Modified' | 'Unchanged' | 'Added' | 'Deleted';
@@ -61,6 +61,8 @@ export interface FileItem {
   filesCount?: number;
   directoriesCount?: number;
   isCalculatingStats?: boolean;
+  width?: number;
+  height?: number;
 }
 
 export interface FolderStats {

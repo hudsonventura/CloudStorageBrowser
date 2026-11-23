@@ -145,9 +145,14 @@ export const FileGrid: React.FC<FileGridProps> = ({ files, onContextMenu, onOpen
                 <span className="text-xs font-semibold text-slate-800 dark:text-zinc-100 truncate block" title={file.name}>
                   {file.name}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-zinc-400 block mt-0.5">
-                  {formatBytes(file.size)}
-                </span>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  <span>{formatBytes(file.size)}</span>
+                  {file.width && file.height && (
+                    <span className="font-mono text-[10px] text-slate-400 dark:text-zinc-500">
+                      {file.width}×{file.height}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );

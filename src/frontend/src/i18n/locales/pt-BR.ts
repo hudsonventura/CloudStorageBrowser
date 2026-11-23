@@ -71,6 +71,7 @@ export const ptBR: TranslationDictionary = {
     colSize: 'Tamanho',
     colLastModified: 'Modificado',
     colType: 'Tipo',
+    colDimensions: 'Dimensões',
     colActions: 'Ações',
     viewThumbnails: 'Miniaturas',
     viewDetails: 'Detalhes'
