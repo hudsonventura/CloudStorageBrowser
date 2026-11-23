@@ -136,9 +136,9 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
   };
 
   return (
-    <aside className="w-80 border-l border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121215] flex flex-col h-[calc(100vh-4rem)] sticky top-16 shrink-0 transition-colors z-10 select-none">
+    <aside className="w-80 border-l border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121215] flex flex-col h-full shrink-0 transition-colors z-10 select-none overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
         <div className="flex items-center space-x-2.5 truncate mr-2">
           {item ? (
             item.type === 'Directory' ? (
@@ -169,7 +169,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-zinc-800 px-4">
+      <div className="flex border-b border-slate-200 dark:border-zinc-800 px-4 shrink-0">
         <button
           onClick={() => setActiveTab('details')}
           className={`flex-1 py-2.5 text-xs font-semibold text-center border-b-2 transition-colors ${
@@ -193,7 +193,7 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({ item, onPr
       </div>
 
       {/* Tab Content */}
-      <div className="p-4 overflow-y-auto flex-1 space-y-6">
+      <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-6">
         {activeTab === 'details' ? (
           item ? (
             <>

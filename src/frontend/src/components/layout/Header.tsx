@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolder, onUploadClick, onNe
   }, []);
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] px-6 flex items-center justify-between sticky top-0 z-20 transition-colors">
+    <header className="h-16 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] px-6 flex items-center justify-between shrink-0 z-20 transition-colors">
       {/* Brand */}
       <div
         onClick={() => navigate('/home')}

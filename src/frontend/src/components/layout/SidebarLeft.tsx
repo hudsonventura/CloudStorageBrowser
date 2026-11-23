@@ -23,8 +23,8 @@ export const SidebarLeft: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121215] flex flex-col justify-between shrink-0 select-none transition-colors">
-      <div className="p-4 space-y-6 overflow-y-auto">
+    <aside className="w-64 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121215] flex flex-col h-full shrink-0 select-none transition-colors overflow-hidden">
+      <div className="p-4 space-y-6 overflow-y-auto flex-1 min-h-0">
         {/* Datasets Section */}
         <div>
           <div className="flex items-center justify-between px-2 mb-2">
@@ -104,7 +104,7 @@ export const SidebarLeft: React.FC = () => {
 
       {/* Disk Usage Widget at Bottom */}
       {selectedDataset && (
-        <div className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-900/95 transition-colors">
+        <div className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-900/95 transition-colors shrink-0">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-zinc-200 mb-2">
             <div className="flex items-center space-x-1.5">
               <HardDrive className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />

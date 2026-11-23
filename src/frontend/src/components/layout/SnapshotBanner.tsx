@@ -10,7 +10,7 @@ export const SnapshotBanner: React.FC = () => {
   if (!snapshotName) return null;
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center justify-between text-amber-900 dark:text-amber-200">
+    <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center justify-between text-amber-900 dark:text-amber-200 shrink-0">
       <div className="flex items-center space-x-2.5 text-sm">
         <Camera className="w-4 h-4 text-amber-500 shrink-0" />
         <div>

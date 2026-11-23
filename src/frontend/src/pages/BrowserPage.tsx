@@ -332,7 +332,7 @@ export const BrowserPage: React.FC = () => {
   return (
     <div
       onClick={() => setContextMenu(null)}
-      className="min-h-screen bg-slate-50 dark:bg-[#09090b] flex flex-col font-sans transition-colors"
+      className="h-screen max-h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b] flex flex-col font-sans transition-colors"
     >
       <input
         ref={fileInputRef}
@@ -360,13 +360,13 @@ export const BrowserPage: React.FC = () => {
 
       <SnapshotBanner />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 min-h-0 flex overflow-hidden">
         <SidebarLeft />
 
         {/* Central Browsing Zone */}
         {!selectedDataset ? (
           /* Home Welcome Dashboard */
-          <main className="flex-1 overflow-y-auto px-8 py-8">
+          <main className="flex-1 min-h-0 overflow-y-auto px-8 py-8">
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl shadow-blue-500/10 flex items-center justify-between">
                 <div>
@@ -450,7 +450,7 @@ export const BrowserPage: React.FC = () => {
         ) : (
           /* File Directory Browsing View */
           <DragAndDropZone>
-            <main className="flex-1 overflow-y-auto px-8 py-5 flex flex-col justify-between">
+            <main className="flex-1 min-h-0 overflow-y-auto px-8 py-5 flex flex-col justify-between">
               <div>
                 {/* Top Bar inside central pane: Breadcrumbs and View Toggles */}
                 <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-zinc-800">

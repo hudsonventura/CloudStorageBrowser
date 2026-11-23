@@ -64,7 +64,7 @@ export const DragAndDropZone: React.FC<DragAndDropZoneProps> = ({ children }) =>
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="relative flex-1 flex flex-col min-h-0"
+      className="relative flex-1 min-h-0 flex flex-col overflow-hidden"
     >
       {isDraggingOver && (
         <div className="absolute inset-0 z-40 bg-blue-600/10 backdrop-blur-xs border-4 border-dashed border-blue-500 rounded-3xl m-4 flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 pointer-events-none animate-in fade-in">
