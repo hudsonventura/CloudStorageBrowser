@@ -156,17 +156,17 @@ public class PhysicalStorageService : IStorageService
         sorted = pagination.SortBy switch
         {
             SortField.Size => isAsc
-                ? items.OrderBy(x => x.Type).ThenBy(x => x.Size).ThenBy(x => x.Name)
-                : items.OrderBy(x => x.Type).ThenByDescending(x => x.Size).ThenBy(x => x.Name),
+                ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.Size).ThenBy(x => x.Name)
+                : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.Size).ThenBy(x => x.Name),
             SortField.LastModified => isAsc
-                ? items.OrderBy(x => x.Type).ThenBy(x => x.LastModifiedAtUtc).ThenBy(x => x.Name)
-                : items.OrderBy(x => x.Type).ThenByDescending(x => x.LastModifiedAtUtc).ThenBy(x => x.Name),
+                ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.LastModifiedAtUtc).ThenBy(x => x.Name)
+                : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.LastModifiedAtUtc).ThenBy(x => x.Name),
             SortField.Extension => isAsc
-                ? items.OrderBy(x => x.Type).ThenBy(x => x.Extension).ThenBy(x => x.Name)
-                : items.OrderBy(x => x.Type).ThenByDescending(x => x.Extension).ThenBy(x => x.Name),
+                ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.Extension).ThenBy(x => x.Name)
+                : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.Extension).ThenBy(x => x.Name),
             _ => isAsc
-                ? items.OrderBy(x => x.Type).ThenBy(x => x.Name)
-                : items.OrderBy(x => x.Type).ThenByDescending(x => x.Name)
+                ? items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenBy(x => x.Name)
+                : items.OrderBy(x => x.Type == ItemType.Directory ? 0 : 1).ThenByDescending(x => x.Name)
         };
 
         var allSorted = sorted.ToList();

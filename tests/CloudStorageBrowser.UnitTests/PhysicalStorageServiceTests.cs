@@ -80,6 +80,70 @@ public class PhysicalStorageServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ListDirectoryAsync_DirectoriesAlwaysAppearBeforeFiles()
+    {
+        // Create 200 files
+        for (int i = 1; i <= 200; i++)
+        {
+            File.WriteAllText(Path.Combine(_tempDir, $"z_file_{i:D3}.txt"), $"content {i}");
+        }
+
+        // Create 5 subdirectories with names that would sort after 'z' alphabetically if not prioritized
+        var dirNames = new[] { "alpha_dir", "beta_dir", "gamma_dir", "zeta_dir", "omega_dir" };
+        foreach (var dir in dirNames)
+        {
+            Directory.CreateDirectory(Path.Combine(_tempDir, dir));
+        }
+
+        var pagination = new PaginationParams
+        {
+            Page = 1,
+            PageSize = 50,
+            SortBy = SortField.Name,
+            SortDirection = SortDirection.Ascending
+        };
+
+        var page1 = await _storageService.ListDirectoryAsync(_writableDataset, "", pagination);
+
+        // The first 5 items on page 1 MUST be the 5 subdirectories, ordered alphabetically
+        Assert.True(page1.Items.Count == 50);
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.Equal(ItemType.Directory, page1.Items[i].Type);
+        }
+        Assert.Equal("alpha_dir", page1.Items[0].Name);
+        Assert.Equal("beta_dir", page1.Items[1].Name);
+        Assert.Equal("gamma_dir", page1.Items[2].Name);
+        Assert.Equal("omega_dir", page1.Items[3].Name);
+        Assert.Equal("zeta_dir", page1.Items[4].Name);
+
+        // All remaining items on page 1 must be files
+        for (int i = 5; i < 50; i++)
+        {
+            Assert.Equal(ItemType.File, page1.Items[i].Type);
+        }
+
+        // Test descending sort: directories still appear first, but sorted Z -> A
+        pagination.SortDirection = SortDirection.Descending;
+        var page1Desc = await _storageService.ListDirectoryAsync(_writableDataset, "", pagination);
+
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.Equal(ItemType.Directory, page1Desc.Items[i].Type);
+        }
+        Assert.Equal("zeta_dir", page1Desc.Items[0].Name);
+        Assert.Equal("omega_dir", page1Desc.Items[1].Name);
+        Assert.Equal("gamma_dir", page1Desc.Items[2].Name);
+        Assert.Equal("beta_dir", page1Desc.Items[3].Name);
+        Assert.Equal("alpha_dir", page1Desc.Items[4].Name);
+
+        for (int i = 5; i < 50; i++)
+        {
+            Assert.Equal(ItemType.File, page1Desc.Items[i].Type);
+        }
+    }
+
+    [Fact]
     public async Task ReadOnlyDataset_BlocksWriteOperations()
     {
         using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
