@@ -22,6 +22,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     ffmpeg \
     libfontconfig1 \
     libfreetype6 \
@@ -35,8 +36,11 @@ ENV DATASETS_DIR=/data/datasets
 ENV CACHE_DIR=/data/cache
 ENV CONFIG_DIR=/data/config
 
-# Create default volume mount points
-RUN mkdir -p /data/datasets /data/cache /data/config
+# Create default volume mount points accessible to non-root UIDs (e.g. TrueNAS UID 568)
+RUN mkdir -p /data/datasets /data/cache /data/config \
+    && chmod 777 /data/datasets /data/cache /data/config
 
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/health || exit 1
 ENTRYPOINT ["dotnet", "CloudStorageBrowser.Web.dll"]

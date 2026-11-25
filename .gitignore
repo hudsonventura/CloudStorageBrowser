@@ -16,3 +16,6 @@ data/
 *.db
 *.db-journal
 docker-compose-volumes.yml
+
+# Local TrueNAS Apps fork clone
+truenas_app/

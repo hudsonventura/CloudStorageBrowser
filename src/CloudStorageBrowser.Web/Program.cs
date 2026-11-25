@@ -54,6 +54,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 app.MapFallbackToFile("index.html");
 
 app.Run();

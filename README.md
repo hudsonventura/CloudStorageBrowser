@@ -85,6 +85,33 @@ docker compose down
 
 ---
 
+## 🗄️ TrueNAS SCALE Deployment (Custom App / YAML)
+
+To deploy on **TrueNAS SCALE (24.10+)** via **Apps → Discover Apps → Custom App → Install via YAML**:
+
+```yaml
+services:
+  cloudstoragebrowser:
+    image: ghcr.io/hudsonventura/cloudstoragebrowser:1.0.0
+    restart: unless-stopped
+    ports:
+      - "30624:8080"
+    environment:
+      - DATASETS_DIR=/data/datasets
+      - CONFIG_DIR=/data/config
+      - CACHE_DIR=/data/cache
+      - JWT_SECRET=ReplaceWithARandomSecretKeyAtLeast32CharactersLong!
+    volumes:
+      - /mnt/YOUR_POOL/apps/cloudstoragebrowser/config:/data/config
+      - /mnt/YOUR_POOL/apps/cloudstoragebrowser/cache:/data/cache
+      - /mnt/YOUR_POOL/your-files:/data/datasets/your-files:rw
+      - /mnt/YOUR_POOL/backups:/data/datasets/backups:ro
+```
+
+> **Tip for ZFS Snapshot Time Travel:** To browse `.zfs/snapshot` inside TrueNAS datasets, make sure **ZFS Snapshot Directory** (`snapdir`) is set to **Visible** on the dataset settings in TrueNAS.
+
+---
+
 ## 🛠️ Local Development
 
 ### Prerequisites
