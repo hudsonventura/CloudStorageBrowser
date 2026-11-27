@@ -10,43 +10,13 @@
 
 ---
 
-## 🚀 Key Features
+## Get Started:
 
-- 🐳 **Run Anywhere with Docker in Seconds**: Deploy with a single `docker compose up` command. No external database, no complex dependencies, and minimal resource usage.
-- 📂 **Works with Your Existing Folders (Zero Lock-In)**: No painful migrations or proprietary database schemas. Just point CloudStorageBrowser to your existing drives, NAS shares, or folders, and it handles the rest. You don't need to manage everything through the app—keep organizing your files via SMB, NFS, or the terminal, and changes reflect instantly.
-- 🕒 **ZFS Shadow Copy & Snapshot Time Travel**: Accidentally deleted a file or want to revert an edit? Travel back in time and view, preview, or download previous versions directly from your TrueNAS / ZFS snapshots without leaving the browser.
-- 🖼️ **Instant Media Gallery & Document Viewers**:
-  - **Photos & Images**: Smooth full-screen gallery with zoom, rotation, and keyboard navigation.
-  - **Videos & Audio**: Stream multimedia directly in your browser.
-  - **PDFs & Documents**: Built-in full-featured PDF reader.
-  - **Markdown Editor**: Integrated WYSIWYG & split live preview editor to take notes and write documentation on the fly.
-- ⚡ **Lightning-Fast Thumbnail Caching**: Browse folders with thousands of photos and videos effortlessly with automatic, smart thumbnail generation.
-- 🔒 **Safe & Protected Storage**: Mount volumes with Read-Write (`:rw`) or Read-Only (`:ro`) permissions to protect critical archives from accidental modifications.
-- ✨ **Simplicity & Minimalism First**: A clean, modern, and uncluttered interface that stays out of your way and lets your content take center stage.
-- 🌐 **Multi-Language & Dark Mode**: Ready out of the box in **English**, **Portuguese**, and **Spanish**, featuring an eye-friendly dark/light theme switch.
-
----
-
-## 📦 Volume Structure
-
-| Mount Point | Purpose |
-|---|---|
-| `/data/datasets` | Root directory where user datasets are mounted (e.g. `/data/datasets/photos:rw`, `/data/datasets/backups:ro`). |
-| `/data/config` | Isolated directory for SQLite database storage (`cloudstorage.db`). |
-| `/data/cache` | Dedicated directory for generated thumbnails and temporary files. |
-
----
-
-## 🐳 Running with Docker Compose
-
-An example `docker-compose.yml` is provided in the repository root:
+Create a `docker-compose.yml` file, copy and paste the content below:
 
 ```yaml
 services:
   cloudstorage:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: hudsonventura/cloudstoragebrowser:latest
     container_name: cloudstoragebrowser
     restart: unless-stopped
@@ -62,12 +32,12 @@ services:
       - ./data/config:/data/config
       # Dedicated thumbnail cache (auto-reconstructed on-demand if lost)
       - ./data/cache:/data/cache
+      
       # User datasets (supports both :rw and :ro flags)
       - ./data/datasets/dados:/data/datasets/dados:rw
       - ./data/datasets/backup:/data/datasets/backup:ro
 ```
 
-### Quick Start:
 
 1. Start the container:
 ```bash
@@ -84,6 +54,65 @@ docker compose down
 ```
 
 ---
+
+
+
+
+
+## 🚀 Key Features
+
+- 🐳 **Run Anywhere with Docker in Seconds**: Deploy with a single `docker compose up` command. No external database, no complex dependencies, and minimal resource usage.
+- 📂 **Works with Your Existing Folders (Zero Lock-In)**: No painful migrations or proprietary database schemas. Just point CloudStorageBrowser to your existing drives, NAS shares, or folders, and it handles the rest. You don't need to manage everything through the app—keep organizing your files via SMB, NFS, or the terminal, and changes reflect instantly.
+- ⚡ **Lightning-Fast Thumbnail Caching**: Browse folders with thousands of photos, GIFs, and videos effortlessly with automatic, smart thumbnail generation, resolution badges, disk usage indicators, and recursive directory statistics.
+
+  ![CloudStorageBrowser Workspace & Thumbnail Grid](assets/01.png)
+
+- 🕒 **ZFS Shadow Copy & Snapshot Time Travel**: Accidentally deleted a file or want to revert an edit? Travel back in time and view, preview, or download previous versions directly from your TrueNAS / ZFS snapshots without leaving the browser.
+  - **Smart Change Filtering**: Browse the **Previous Versions** tab and enable *"Show only versions with changes"* to hide snapshots where the folder or file remained identical.
+
+    ![ZFS Previous Versions Tab with Change Filter](assets/05.png)
+
+  - **Per-Item Snapshot History**: See exactly when items were **Added** or **Modified** across historical snapshots and open any point in time in a dedicated tab.
+
+    ![Per-Folder Snapshot History with Added and Modified Badges](assets/07.png)
+
+  - **Read-Only Snapshot Browsing**: Explore historical snapshots safely with a clear read-only banner and return to the live version with a single click.
+
+    ![Browsing Inside a TrueNAS ZFS Snapshot](assets/06.png)
+
+- 🖼️ **Instant Media Gallery, Inspectors & Document Viewers**:
+  - **Photos & Images**: Smooth full-screen gallery with zoom, rotation, and keyboard navigation.
+  - **Videos, Audio & Media Metadata Inspector**: Stream multimedia directly in your browser and inspect detailed properties in the sidebar—including dimensions, video/audio codecs, bitrate, frame rate, pixel format, duration, and audio channels.
+
+    ![Video & Audio Metadata Inspector](assets/02.png)
+
+  - **PDFs & Documents**: Built-in full-featured PDF reader.
+  - **Markdown Editor**: Integrated editor supporting **Live**, **Source**, and **Reading** modes with a rich formatting toolbar, line/word/read-time stats, and `Ctrl+S` saving.
+
+    ![Built-in Markdown Editor](assets/04.png)
+
+- ⌨️ **Familiar File Operations & Keyboard Shortcuts**: Manage files quickly using the right-click context menu and classic keyboard shortcuts—`F2` (Rename), `F7` (Copy to), `F8` (Move to), `F9` (Download), and `Del` (Delete).
+
+  ![Context Menu & Keyboard Shortcuts](assets/03.png)
+
+- 🔒 **Safe & Protected Storage**: Mount volumes with Read-Write (`:rw`) or Read-Only (`:ro`) permissions to protect critical archives from accidental modifications.
+- ✨ **Simplicity & Minimalism First**: A clean, modern, and uncluttered interface that stays out of your way and lets your content take center stage.
+- 🌐 **Multi-Language & Dark Mode**: Ready out of the box in **English**, **Portuguese**, and **Spanish**, featuring an eye-friendly dark/light theme switch.
+
+---
+
+## 📦 Volume Structure
+
+| Mount Point | Purpose |
+|---|---|
+| `/data/datasets` | Root directory where user datasets are mounted (e.g. `/data/datasets/photos:rw`, `/data/datasets/backups:ro`). |
+| `/data/config` | Isolated directory for SQLite database storage (`cloudstorage.db`). |
+| `/data/cache` | Dedicated directory for generated thumbnails and temporary files. |
+
+---
+
+
+
 
 ## 🗄️ TrueNAS SCALE Deployment (Custom App / YAML)
 
